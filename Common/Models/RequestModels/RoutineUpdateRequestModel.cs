@@ -9,7 +9,6 @@ namespace Common.Models.RequestModels
 {
 	public class RoutineUpdateRequestModel
 	{
-		public DayOfWeek DayOfWeek { get; set; }
 
 		public bool IsOnLeave { get; set; }
 
