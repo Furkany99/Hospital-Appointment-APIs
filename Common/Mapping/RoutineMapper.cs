@@ -15,20 +15,29 @@ namespace Common.Mapping
 	{
 		public RoutineMapper()
         {
-			CreateMap<Routine, RoutineDto>().ForMember(x => x.DayOfWeek, opt => opt.MapFrom(src => (DayOfWeek)src.DayOfWeek)).ForMember(x => x.Id, opt => opt.MapFrom(src => src.Id));
-			CreateMap<RoutineDto, Routine>().ForMember(x => x.DayOfWeek,opt => opt.MapFrom(src => (int)src.DayOfWeek))
+			CreateMap<Routine, RoutineDto>().ForMember(x => x.DayOfWeek, opt => opt.MapFrom(src => (DayOfWeek)src.DayOfWeek))
+			.ForMember(x => x.Id, opt => opt.MapFrom(src => src.Id)).ForMember(dest => dest.TimeBlocks, opt => opt.MapFrom(src => src.TimeBlocks));
+			CreateMap<RoutineDto, Routine>().ForMember(x => x.DoctorId, opt => opt.MapFrom(src => src.DoctorId))
+			.ForMember(x => x.DayOfWeek,opt => opt.MapFrom(src => (int)src.DayOfWeek))
 			.ForMember(dest => dest.IsOnLeave, opt => opt.MapFrom(src => src.IsOnLeave))
 			.ForMember(dest => dest.TimeBlocks, opt => opt.MapFrom(src => src.TimeBlocks)); 
 			CreateMap<RoutineRequestModel, RoutineDto>()
 			.ForMember(dest => dest.TimeBlocks, opt => opt.MapFrom(src => src.TimeBlocks));
 			CreateMap<RoutineDto, RoutineRequestModel>();
+			//Burada kullanıcı istemciden request yaptığı için dönüşüm yapmamız gerekiyor. Fakat yapılamıyor.
+			CreateMap<TimeBlock, TimeBlockDto>().ForMember(x => x.StartTime, opt => opt.MapFrom(src => src.StartTime))
+			.ForMember(x => x.EndTime, opt => opt.MapFrom(src => src.EndTime));
 			CreateMap<TimeBlockRequestModel, TimeBlockDto>();
+			//Burada kullanıcıdan bir değer aldığımız için ToTimeSpan dönüşümü yaptık
 			CreateMap<TimeBlockDto, TimeBlock>().ForMember(x => x.StartTime, opt => opt.MapFrom(src => src.StartTime.ToTimeSpan()))
 			.ForMember(x => x.EndTime, opt => opt.MapFrom(src => src.EndTime.ToTimeSpan()));
 			CreateMap<RoutineDto, RoutineUpdateRequestModel>();
 			CreateMap<RoutineUpdateRequestModel,RoutineDto>();
 			CreateMap<RoutineDto, RoutineListResponseModel>();
-			CreateMap<RoutineDto,RoutineResponseModel>();
+			CreateMap<RoutineListResponseModel, RoutineDto>();
+			CreateMap<RoutineDto,RoutineResponseModel>().ForMember(dest => dest.DayOfWeek, opt => opt.MapFrom(src => src.DayOfWeek))
+			.ForMember(dest => dest.IsOnLeave, opt => opt.MapFrom(src => src.IsOnLeave))
+			.ForMember(dest => dest.TimeBlocks, opt => opt.MapFrom(src => src.TimeBlocks));
 
 		}
     }

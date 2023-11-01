@@ -1,4 +1,5 @@
 ﻿using Common.Dto;
+using Common.Models.RequestModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace Common.Models.ResponseModels
 {
 	public class RoutineResponseModel
 	{
-		public int DoctorId { get; set; }
+		//public int DoctorId { get; set; }
 
 		public DayOfWeek DayOfWeek { get; set; }
 

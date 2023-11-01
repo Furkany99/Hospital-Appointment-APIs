@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Common.Dto;
 using Common.Models.RequestModels;
+using Common.Models.ResponseModels;
 using DataAccess.Contexts;
 using DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -286,6 +287,17 @@ namespace Services
 			context.TimeBlocks.RemoveRange(routineToDelete.TimeBlocks);
 			context.Routines.Remove(routineToDelete);
 			context.SaveChanges();
+		}
+
+
+		public List<RoutineDto> GetDoctorRoutines(int doctorId)
+		{
+			var doctorRoutines = context.Routines
+				.Where(routine => routine.DoctorId == doctorId)
+				.Include(routine => routine.TimeBlocks)
+				.ToList();
+
+			return _mapper.Map<List<RoutineDto>>(doctorRoutines);
 		}
 
 

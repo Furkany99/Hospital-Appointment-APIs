@@ -7,10 +7,9 @@ using System.Threading.Tasks;
 namespace Common.Dto
 {
 	public class TimeBlockDto
-	{
-
+	{	
 		public TimeOnly StartTime { get; set; }
 
-		public TimeOnly EndTime { get; set; }
+		public TimeOnly EndTime { get; set; }		
 	}
 }

@@ -7,6 +7,7 @@ using Common.ResponseModels;
 using DataAccess.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Services;
+using System.Numerics;
 
 namespace WebAPI.Controllers
 {
@@ -148,6 +149,22 @@ namespace WebAPI.Controllers
 				return BadRequest("Rutin oluşturulurken bir hata oluştu: " + ex.Message);
 			}
 		}
+
+		[HttpGet("{doctorId}/routines")]
+		public RoutineListResponseModel GetDoctorRoutines(int doctorId)
+		{
+			var doctorRoutines = _doctorService.GetDoctorRoutines(doctorId);
+			var routineResponseModels = _mapper.Map<List<RoutineResponseModel>>(doctorRoutines);
+
+			var routineListResponse = new RoutineListResponseModel
+			{
+				Count = routineResponseModels.Count,
+				routineResponseModels = routineResponseModels
+			};
+
+			return routineListResponse;
+		}
+
 
 		[HttpPut("{doctorId}/routines")]
 		public RoutineUpdateRequestModel UpdateRoutineAndTimeBlocks(int doctorId,int routineId ,RoutineUpdateRequestModel routineUpdateRequest)
