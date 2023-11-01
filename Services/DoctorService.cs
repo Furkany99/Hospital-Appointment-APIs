@@ -206,17 +206,16 @@ namespace Services
 			{
 				if (existingRoutine != null)
 				{
-					
-					context.TimeBlocks.RemoveRange(existingRoutine.TimeBlocks);
-
-					context.Remove(existingRoutine);
-					context.SaveChanges();
+					throw new Exception("Girdiğin günde rutinin var. Lütfen güncelleme işlemi yapın.");
 				}
 
+				else 
+				{
+					var newRoutine = _mapper.Map<Routine>(routineDto);
+					doctor.Routines.Add(newRoutine);
+					context.SaveChanges();
+				}
 				
-				var newRoutine = _mapper.Map<Routine>(routineDto);
-				doctor.Routines.Add(newRoutine);
-				context.SaveChanges();
 			}
 			catch (Exception ex)
 			{

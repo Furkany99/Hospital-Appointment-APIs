@@ -156,7 +156,6 @@ namespace WebAPI.Controllers
 			{
 				var routineDto = _mapper.Map<RoutineDto>(routineUpdateRequest);
 				routineDto.DoctorId = doctorId;
-				routineDto.DayOfWeek = routineUpdateRequest.DayOfWeek;
 				routineDto.Id = routineId;
 				_doctorService.UpdateRoutineAndTimeBlocks(doctorId, routineDto);
 				return routineUpdateRequest;
