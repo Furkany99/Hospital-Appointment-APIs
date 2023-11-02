@@ -35,6 +35,8 @@ namespace Common.Mapping
             CreateMap<OneTimeResponseModel,OneTime>().ForMember(dest => dest.Day, opt => opt.MapFrom(src => new DateTime(src.Day.Year,src.Day.Month,src.Day.Day)))
 			.ForMember(dest => dest.IsOnLeave, opt => opt.MapFrom(src => src.IsOnLeave))
 			.ForMember(dest => dest.OneTimeTimeBlocks, opt => opt.MapFrom(src => src.OneTimeTimeBlocks));
+			CreateMap<OneTimeDto, OneTimeUpdateRequest>();
+			CreateMap<OneTimeUpdateRequest, OneTimeDto>();
 		}
     }
 }

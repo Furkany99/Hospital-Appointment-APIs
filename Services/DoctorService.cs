@@ -352,6 +352,43 @@ namespace Services
 			context.SaveChanges();
 		}
 
+		public void UpdateOneTime(int doctorId,int oneTimeId,OneTimeDto oneTimeDtos)
+		{
+			var doctor = context.Doctors.Include(x => x.OneTimes).ThenInclude(a => a.OneTimeTimeBlocks).FirstOrDefault(a => a.Id == doctorId);
+
+            if (doctor == null)
+            {
+				throw new KeyNotFoundException("Doctor bulunamadı!");
+			}
+
+			var oneTimeToUpdate = context.OneTimes.FirstOrDefault(x => x.Id == oneTimeId);
+
+			if (oneTimeToUpdate == null)
+			{
+				throw new KeyNotFoundException("İzin günü bulunamadı!");
+			}
+
+			oneTimeToUpdate.Day = new DateTime(oneTimeDtos.Day.Year, oneTimeDtos.Day.Month, oneTimeDtos.Day.Day);
+			oneTimeToUpdate.IsOnLeave = oneTimeDtos.IsOnLeave;
+
+
+			foreach (var existingOneTime in oneTimeToUpdate.OneTimeTimeBlocks.ToList())
+			{
+				context.OneTimeTimeBlocks.Remove(existingOneTime);
+			}
+
+			if(oneTimeDtos.OneTimeTimeBlocks != null) 
+			{
+                foreach (var updatedOneTime in oneTimeDtos.OneTimeTimeBlocks)
+                {
+					var newOneTime = _mapper.Map<OneTimeTimeBlock>(updatedOneTime);
+					oneTimeToUpdate.OneTimeTimeBlocks.Add(newOneTime);
+                }
+            }
+
+			context.SaveChanges();
+		}
+
 
 	}
 	

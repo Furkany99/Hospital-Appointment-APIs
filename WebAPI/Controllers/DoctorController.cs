@@ -253,6 +253,24 @@ namespace WebAPI.Controllers
 			return responseModel;
 		}
 
+		[HttpPut("{doctorId}/onetimes/{oneTimeId}")]
+		public OneTimeUpdateRequest UpdateOneTime(int doctorId, int oneTimeId,OneTimeUpdateRequest oneTimeUpdate)
+		{
+			try 
+			{
+				var oneTimeDtos = _mapper.Map<OneTimeDto>(oneTimeUpdate);
+				oneTimeDtos.DoctorId = doctorId;
+				oneTimeDtos.Id = oneTimeId;
+				_doctorService.UpdateOneTime(doctorId, oneTimeId, oneTimeDtos);
+				return oneTimeUpdate;
+				
+			}
+			catch 
+			{
+				throw new KeyNotFoundException("Doktor veya İzin günü bulunamadı!");
+			}
+		}
+
 		[HttpDelete("{doctorId}/onetimes/{oneTimeId}")]
 		public IActionResult DeleteOneTime(int doctorId, int oneTimeId)
 		{
