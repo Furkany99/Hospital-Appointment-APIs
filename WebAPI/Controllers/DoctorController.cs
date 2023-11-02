@@ -253,6 +253,20 @@ namespace WebAPI.Controllers
 			return responseModel;
 		}
 
+		[HttpDelete("{doctorId}/onetimes/{oneTimeId}")]
+		public IActionResult DeleteOneTime(int doctorId, int oneTimeId)
+		{
+			try
+			{
+				_doctorService.DeleteOneTime(doctorId, oneTimeId);
+				return NoContent();
+			}
+			catch (KeyNotFoundException ex)
+			{
+				return NotFound(ex.Message);
+			}
+		}
+
 
 	}
 }

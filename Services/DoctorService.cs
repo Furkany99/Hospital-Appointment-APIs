@@ -328,6 +328,30 @@ namespace Services
 				.ToList();
 		}
 
+		public void DeleteOneTime(int doctorId, int oneTimeId)
+		{
+			var doctor = context.Doctors
+				.Include(d => d.OneTimes)
+				.ThenInclude(ot => ot.OneTimeTimeBlocks)
+				.FirstOrDefault(d => d.Id == doctorId);
+
+			if (doctor == null)
+			{
+				throw new KeyNotFoundException("Doctor not found");
+			}
+
+			var oneTime = doctor.OneTimes.FirstOrDefault(ot => ot.Id == oneTimeId);
+
+			if (oneTime == null)
+			{
+				throw new KeyNotFoundException("OneTime not found");
+			}
+
+			context.OneTimeTimeBlocks.RemoveRange(oneTime.OneTimeTimeBlocks);
+			context.OneTimes.Remove(oneTime);
+			context.SaveChanges();
+		}
+
 
 	}
 	
