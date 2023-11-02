@@ -12,9 +12,11 @@ namespace Common.Dto
 
 		public int DoctorId { get; set; }
 
-		public DateTime Day { get; set; }
+		public DateOnly Day { get; set; }
 
 		public bool IsOnLeave { get; set; }
+
+		public List<OneTimeTimeBlockDto> OneTimeTimeBlocks { get; set; } = new List<OneTimeTimeBlockDto>();
 
 	}
 }

@@ -8,12 +8,10 @@ namespace Common.Dto
 {
 	public class OneTimeTimeBlockDto
 	{
-		public int Id { get; set; }
+		
+		public TimeOnly StartTime { get; set; }
 
-		public TimeSpan StartTime { get; set; }
+		public TimeOnly EndTime { get; set; }
 
-		public TimeSpan EndTime { get; set; }
-
-		public int OneTimeId { get; set; }
 	}
 }

@@ -196,5 +196,63 @@ namespace WebAPI.Controllers
 				return NotFound(ex.Message);
 			}
 		}
+
+		[HttpPost("{doctorId}/Onetime")]
+		public IActionResult CreateOneTime(int doctorId, OneTimeRequestModel requestModel)
+		{
+			try
+			{
+				var doctor = _doctorService.GetDoctorById(doctorId);
+
+				if (doctor == null)
+				{
+					return NotFound("Doktor bulunamadı.");
+				}
+
+				var onetimeDto = _mapper.Map<OneTimeDto>(requestModel);
+				onetimeDto.DoctorId = doctorId;
+				_doctorService.CreateOneTime(doctorId, onetimeDto);
+				return Ok();
+			}
+			catch (KeyNotFoundException)
+			{
+				return NotFound("Doctor not found");
+			}
+
+		}
+
+		[HttpGet("{doctorId}/onetimes")]
+		public OneTimeListResponseModel GetDoctorOneTimes(int doctorId, DateOnly? startDate = null, DateOnly? endDate = null)
+		{
+			var responseModel = new OneTimeListResponseModel();
+			List<OneTime> doctorOnetimes;
+
+			if (!startDate.HasValue || !endDate.HasValue)
+			{
+				DateOnly fourWeeksAgo = DateOnly.FromDateTime(DateTime.Now.Date.AddMonths(-1));
+				startDate = fourWeeksAgo;
+				endDate = DateOnly.FromDateTime(DateTime.Now.Date);
+			}
+
+
+			doctorOnetimes = _doctorService.GetDoctorOneTimes(doctorId, startDate.Value, endDate.Value);
+
+			if (doctorOnetimes == null)
+			{
+				responseModel.Count = 0;
+				responseModel.oneTimeResponseModels = new List<OneTimeResponseModel>();
+			}
+			else
+			{
+				
+				var oneTimeResponseModels = doctorOnetimes.Select(ot => _mapper.Map<OneTimeResponseModel>(ot)).ToList();
+				responseModel.Count = oneTimeResponseModels.Count;
+				responseModel.oneTimeResponseModels = oneTimeResponseModels;
+			}
+
+			return responseModel;
+		}
+
+
 	}
 }

@@ -24,11 +24,9 @@ namespace Common.Mapping
 			CreateMap<RoutineRequestModel, RoutineDto>()
 			.ForMember(dest => dest.TimeBlocks, opt => opt.MapFrom(src => src.TimeBlocks));
 			CreateMap<RoutineDto, RoutineRequestModel>();
-			//Burada kullanıcı istemciden request yaptığı için dönüşüm yapmamız gerekiyor. Fakat yapılamıyor.
 			CreateMap<TimeBlock, TimeBlockDto>().ForMember(x => x.StartTime, opt => opt.MapFrom(src => TimeOnly.FromTimeSpan(src.StartTime)))
 			.ForMember(x => x.EndTime, opt => opt.MapFrom(src =>TimeOnly.FromTimeSpan(src.EndTime)));
 			CreateMap<TimeBlockRequestModel, TimeBlockDto>();
-			//Burada kullanıcıdan bir değer aldığımız için ToTimeSpan dönüşümü yaptık
 			CreateMap<TimeBlockDto, TimeBlock>().ForMember(x => x.StartTime, opt => opt.MapFrom(src => src.StartTime.ToTimeSpan()))
 			.ForMember(x => x.EndTime, opt => opt.MapFrom(src => src.EndTime.ToTimeSpan()));
 			CreateMap<RoutineDto, RoutineUpdateRequestModel>();

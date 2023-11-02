@@ -21,6 +21,7 @@ builder.Services.AddAutoMapper(typeof(DoctorMapper).Assembly);
 builder.Services.AddAutoMapper(typeof(DepartmentMapper).Assembly);
 builder.Services.AddAutoMapper(typeof(TitleMapper).Assembly);
 builder.Services.AddAutoMapper(typeof (RoutineMapper).Assembly);
+builder.Services.AddAutoMapper(typeof(OneTimeMapper).Assembly);
 
 var app = builder.Build();
 

@@ -300,6 +300,34 @@ namespace Services
 			return _mapper.Map<List<RoutineDto>>(doctorRoutines);
 		}
 
+		public void CreateOneTime(int doctorId,OneTimeDto oneTimeDto) 
+		{
+			var oneTime = context.Doctors.Include(x => x.OneTimes).ThenInclude(x =>x.OneTimeTimeBlocks).FirstOrDefault(x => x.Id == doctorId);
+
+			if (oneTime == null) 
+			{
+				throw new KeyNotFoundException();
+			}
+
+			DateOnly oneTimeDtoDate = oneTimeDto.Day;
+
+			var doctorsOneTime = oneTime.OneTimes.FirstOrDefault(x => x.Day == new DateTime(oneTimeDto.Day.Year, oneTimeDto.Day.Month, oneTimeDto.Day.Day));
+
+			var oneTimes = _mapper.Map<OneTime>(oneTimeDto);
+			oneTime.OneTimes.Add(oneTimes);
+			context.SaveChanges();
+		}
+
+		public List<OneTime> GetDoctorOneTimes(int doctorId, DateOnly startDate, DateOnly endDate)
+		{
+			return context.Doctors
+				.Where(d => d.Id == doctorId)
+				.SelectMany(d => d.OneTimes)
+				.Where(ot => ot.Day >= new DateTime(startDate.Year,startDate.Month,startDate.Day) && ot.Day <= new DateTime(endDate.Year,endDate.Month,endDate.Day))
+				.Include(a => a.OneTimeTimeBlocks)
+				.ToList();
+		}
+
 
 	}
 	
