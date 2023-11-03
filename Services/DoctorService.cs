@@ -389,6 +389,24 @@ namespace Services
 			context.SaveChanges();
 		}
 
+		public DoctorOneTimeAndRoutineDto GetDoctorRoutinesAndOneTimes(int doctorId)
+		{
+			var doctor = context.Doctors
+				.Include(d => d.Routines)
+					.ThenInclude(r => r.TimeBlocks)
+				.Include(d => d.OneTimes)
+					.ThenInclude(ot => ot.OneTimeTimeBlocks)
+				.FirstOrDefault(d => d.Id == doctorId);
+
+			if (doctor == null)
+			{
+				return null;
+			}
+
+			var doctorDto = _mapper.Map<DoctorOneTimeAndRoutineDto>(doctor);
+			return doctorDto;
+		}
+
 
 	}
 	
