@@ -285,39 +285,17 @@ namespace WebAPI.Controllers
 			}
 		}
 
-		[HttpGet("{doctorId}/appointments")]
-		public DoctorOneTimeAndRoutineDto GetDoctorAppointments(int doctorId, DateOnly startDate, DateOnly endDate)
+		[HttpGet("{doctorId}/routinesAndonetimes")]
+		public IActionResult GetDoctorRoutinesAndOneTimes(int doctorId)
 		{
-			var doctor = _doctorService.GetDoctorById(doctorId);
+			var doctorAppointments = _doctorService.GetDoctorRoutinesAndOneTimes(doctorId);
 
-			if (doctor == null)
+			if (doctorAppointments == null)
 			{
-				return null; // Doktor bulunamadı
+				return NotFound("Doktor bulunamadı.");
 			}
 
-			var routines = _doctorService.GetDoctorRoutines(doctorId);
-			var doctorOnetimes = _doctorService.GetDoctorOneTimes(doctorId, startDate, endDate);
-
-			// Rutinler ve tek seferlik randevuların çakıştığı saatleri kontrol et
-			foreach (var oneTime in doctorOnetimes)
-			{
-				var overlappingRoutine = routines.FirstOrDefault(routine => routine.DayOfWeek == oneTime.Day.DayOfWeek);
-
-				if (overlappingRoutine != null)
-				{
-					// Tek seferlik randevu rutini geçersiz kılar
-					routines.Remove(overlappingRoutine);
-				}
-			}
-
-			var doctorAppointments = new DoctorOneTimeAndRoutineDto
-			{
-				DoctorId = doctorId,
-				Routines = _mapper.Map<List<RoutineDto>>(routines),
-				OneTimes = _mapper.Map<List<OneTimeDto>>(doctorOnetimes)
-			};
-
-			return doctorAppointments;
+			return Ok(doctorAppointments);
 		}
 
 

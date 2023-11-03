@@ -18,6 +18,7 @@ namespace Common.Mapping
         {
 			CreateMap<DoctorOneTimeAndRoutineDto, Doctor>()
 			.ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.DoctorId));
+			CreateMap<Doctor, DoctorOneTimeAndRoutineDto>();
 		}
     }
 }
