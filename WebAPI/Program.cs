@@ -22,6 +22,7 @@ builder.Services.AddAutoMapper(typeof(DepartmentMapper).Assembly);
 builder.Services.AddAutoMapper(typeof(TitleMapper).Assembly);
 builder.Services.AddAutoMapper(typeof (RoutineMapper).Assembly);
 builder.Services.AddAutoMapper(typeof(OneTimeMapper).Assembly);
+builder.Services.AddAutoMapper(typeof(DateInfoMapper).Assembly);
 
 var app = builder.Build();
 

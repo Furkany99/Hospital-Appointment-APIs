@@ -1,15 +1,9 @@
 ﻿using AutoMapper;
 using Common.Dto;
 using Common.Models.RequestModels;
-using Common.Models.ResponseModels;
 using DataAccess.Contexts;
 using DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Services
 {
@@ -17,6 +11,7 @@ namespace Services
 	{
 		private readonly HospitalAppointmentContext context;
 		private readonly IMapper _mapper;
+		
 
 		public DoctorService(HospitalAppointmentContext Context, IMapper mapper)
 		{
@@ -24,18 +19,15 @@ namespace Services
 			_mapper = mapper;
 		}
 
-
 		public void CreateDoctor(DoctorDto doctorDto)
 		{
 			Account account = _mapper.Map<Account>(doctorDto);
 			Doctor doctor = _mapper.Map<Doctor>(doctorDto);
-			
 
 			doctor.Account = account;
 
 			if (doctorDto.DepartmentIds != null)
 			{
-
 				foreach (int departmentId in doctorDto.DepartmentIds)
 				{
 					Department department = context.Departments.Find(departmentId);
@@ -49,13 +41,9 @@ namespace Services
 			context.Doctors.Add(doctor);
 			context.Accounts.Add(account);
 			context.SaveChanges();
-
-			
-
 		}
 
-
-		public DoctorDto UpdateDoctor(int id,DoctorUpdateRequestModel doctorUpdate)
+		public DoctorDto UpdateDoctor(int id, DoctorUpdateRequestModel doctorUpdate)
 		{
 			var existingDoctor = context.Doctors.Find(id);
 
@@ -64,20 +52,15 @@ namespace Services
 				existingDoctor.Name = doctorUpdate.Name;
 				existingDoctor.Surname = doctorUpdate.Surname;
 
-
 				context.SaveChanges();
 
 				DoctorDto doctorDto = _mapper.Map<DoctorDto>(existingDoctor);
 				return doctorDto;
-
 			}
-
 			else
 			{
 				throw new KeyNotFoundException();
 			}
-
-
 		}
 
 		public DoctorDto UpdateDoctorDepartment(int id, List<int> departmentIds)
@@ -148,14 +131,12 @@ namespace Services
 
 		public void DeleteDoctor(int id)
 		{
-
 			var deleteDoctor = context.Doctors.Find(id);
 
 			if (deleteDoctor != null)
 			{
 				context.Doctors.Remove(deleteDoctor);
 				context.SaveChanges();
-
 			}
 		}
 
@@ -171,7 +152,6 @@ namespace Services
 			}
 
 			return doctorList;
-
 		}
 
 		public DoctorDto GetDoctorById(int id)
@@ -191,10 +171,10 @@ namespace Services
 
 		public void CreateRoutine(int doctorId, RoutineDto routineDto)
 		{
-				var doctor = context.Doctors
-			.Include(d => d.Routines)
-			.ThenInclude(r => r.TimeBlocks)
-			.SingleOrDefault(d => d.Id == doctorId);
+			var doctor = context.Doctors
+		.Include(d => d.Routines)
+		.ThenInclude(r => r.TimeBlocks)
+		.SingleOrDefault(d => d.Id == doctorId);
 
 			if (doctor == null)
 			{
@@ -209,21 +189,17 @@ namespace Services
 				{
 					throw new Exception("Girdiğin günde rutinin var. Lütfen güncelleme işlemi yapın.");
 				}
-
-				else 
+				else
 				{
 					var newRoutine = _mapper.Map<Routine>(routineDto);
 					doctor.Routines.Add(newRoutine);
 					context.SaveChanges();
 				}
-				
 			}
 			catch (Exception ex)
 			{
-				
 				throw new Exception("Rutin oluşturulurken bir hata oluştu: " + ex.Message);
 			}
-
 		}
 
 		public void UpdateRoutineAndTimeBlocks(int doctorId, RoutineDto routineDto)
@@ -247,7 +223,6 @@ namespace Services
 
 			existingRoutine.IsOnLeave = routineDto.IsOnLeave;
 
-			
 			foreach (var existingTimeBlock in existingRoutine.TimeBlocks.ToList())
 			{
 				context.TimeBlocks.Remove(existingTimeBlock);
@@ -265,12 +240,12 @@ namespace Services
 			context.SaveChanges();
 		}
 
-		public void DeleteRoutine(int doctorId,int routineId)
+		public void DeleteRoutine(int doctorId, int routineId)
 		{
-				var doctor = context.Doctors
-			.Include(d => d.Routines)
-			.ThenInclude(r => r.TimeBlocks)
-			.FirstOrDefault(d => d.Id == doctorId);
+			var doctor = context.Doctors
+		.Include(d => d.Routines)
+		.ThenInclude(r => r.TimeBlocks)
+		.FirstOrDefault(d => d.Id == doctorId);
 
 			if (doctor == null)
 			{
@@ -289,7 +264,6 @@ namespace Services
 			context.SaveChanges();
 		}
 
-
 		public List<RoutineDto> GetDoctorRoutines(int doctorId)
 		{
 			var doctorRoutines = context.Routines
@@ -300,11 +274,11 @@ namespace Services
 			return _mapper.Map<List<RoutineDto>>(doctorRoutines);
 		}
 
-		public void CreateOneTime(int doctorId,OneTimeDto oneTimeDto) 
+		public void CreateOneTime(int doctorId, OneTimeDto oneTimeDto)
 		{
-			var oneTime = context.Doctors.Include(x => x.OneTimes).ThenInclude(x =>x.OneTimeTimeBlocks).FirstOrDefault(x => x.Id == doctorId);
+			var oneTime = context.Doctors.Include(x => x.OneTimes).ThenInclude(x => x.OneTimeTimeBlocks).FirstOrDefault(x => x.Id == doctorId);
 
-			if (oneTime == null) 
+			if (oneTime == null)
 			{
 				throw new KeyNotFoundException();
 			}
@@ -323,7 +297,7 @@ namespace Services
 			return context.Doctors
 				.Where(d => d.Id == doctorId)
 				.SelectMany(d => d.OneTimes)
-				.Where(ot => ot.Day >= new DateTime(startDate.Year,startDate.Month,startDate.Day) && ot.Day <= new DateTime(endDate.Year,endDate.Month,endDate.Day))
+				.Where(ot => ot.Day >= new DateTime(startDate.Year, startDate.Month, startDate.Day) && ot.Day <= new DateTime(endDate.Year, endDate.Month, endDate.Day))
 				.Include(a => a.OneTimeTimeBlocks)
 				.ToList();
 		}
@@ -352,12 +326,12 @@ namespace Services
 			context.SaveChanges();
 		}
 
-		public void UpdateOneTime(int doctorId,int oneTimeId,OneTimeDto oneTimeDtos)
+		public void UpdateOneTime(int doctorId, int oneTimeId, OneTimeDto oneTimeDtos)
 		{
 			var doctor = context.Doctors.Include(x => x.OneTimes).ThenInclude(a => a.OneTimeTimeBlocks).FirstOrDefault(a => a.Id == doctorId);
 
-            if (doctor == null)
-            {
+			if (doctor == null)
+			{
 				throw new KeyNotFoundException("Doctor bulunamadı!");
 			}
 
@@ -371,26 +345,26 @@ namespace Services
 			oneTimeToUpdate.Day = new DateTime(oneTimeDtos.Day.Year, oneTimeDtos.Day.Month, oneTimeDtos.Day.Day);
 			oneTimeToUpdate.IsOnLeave = oneTimeDtos.IsOnLeave;
 
-
 			foreach (var existingOneTime in oneTimeToUpdate.OneTimeTimeBlocks.ToList())
 			{
 				context.OneTimeTimeBlocks.Remove(existingOneTime);
 			}
 
-			if(oneTimeDtos.OneTimeTimeBlocks != null) 
+			if (oneTimeDtos.OneTimeTimeBlocks != null)
 			{
-                foreach (var updatedOneTime in oneTimeDtos.OneTimeTimeBlocks)
-                {
+				foreach (var updatedOneTime in oneTimeDtos.OneTimeTimeBlocks)
+				{
 					var newOneTime = _mapper.Map<OneTimeTimeBlock>(updatedOneTime);
 					oneTimeToUpdate.OneTimeTimeBlocks.Add(newOneTime);
-                }
-            }
+				}
+			}
 
 			context.SaveChanges();
 		}
 
-		public DoctorOneTimeAndRoutineDto GetDoctorRoutinesAndOneTimes(int doctorId)
+		public DateInfoDto GetDoctorRoutinesAndOneTimes(int doctorId, DateOnly startDate, DateOnly endDate)
 		{
+			
 			var doctor = context.Doctors
 				.Include(d => d.Routines)
 					.ThenInclude(r => r.TimeBlocks)
@@ -403,11 +377,63 @@ namespace Services
 				return null;
 			}
 
-			var doctorDto = _mapper.Map<DoctorOneTimeAndRoutineDto>(doctor);
+			var doctorDto = _mapper.Map<DateInfoDto>(doctor);
+
+			
+			var leaveDates = new List<DateOnly>();
+
+			
+			foreach (var oneTime in doctorDto.OneTimes)
+			{
+				foreach (var oneTimeTimeBlock in oneTime.OneTimeTimeBlocks)
+				{
+					
+					DateOnly date = oneTime.Day;
+					doctorDto.Routines.RemoveAll(r => r.DayOfWeek == (DayOfWeek)date.DayOfWeek);
+					if (!leaveDates.Contains(date))
+					{
+						leaveDates.Add(date);
+					}
+				}
+			}
+
+			
+			if (startDate == default && endDate == default)
+			{
+				startDate = DateOnly.FromDateTime(DateTime.Now).AddDays(-27);
+				endDate = DateOnly.FromDateTime(DateTime.Now);
+			}
+
+			List<RoutineDto> routinesToRemove = new List<RoutineDto>();
+
+			foreach (var routine in doctorDto.Routines)
+			{
+				foreach (var timeBlock in routine.TimeBlocks)
+				{
+					DateOnly date = startDate;
+					while (date <= endDate)
+					{
+						if (leaveDates.Contains(date))
+						{
+							
+							routinesToRemove.Add(routine);
+							break;
+						}
+						date = date.AddDays(1);
+					}
+				}
+			}
+
+			
+			foreach (var routineToRemove in routinesToRemove)
+			{
+				doctorDto.Routines.Remove(routineToRemove);
+			}
+
 			return doctorDto;
 		}
 
 
+
 	}
-	
 }

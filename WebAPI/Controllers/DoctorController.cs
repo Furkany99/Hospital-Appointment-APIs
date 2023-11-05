@@ -285,17 +285,25 @@ namespace WebAPI.Controllers
 			}
 		}
 
-		[HttpGet("{doctorId}/routinesAndonetimes")]
-		public IActionResult GetDoctorRoutinesAndOneTimes(int doctorId)
-		{
-			var doctorAppointments = _doctorService.GetDoctorRoutinesAndOneTimes(doctorId);
 
-			if (doctorAppointments == null)
+		[HttpGet("{doctorId}/routines-and-onetimes")]
+		public IActionResult GetDoctorRoutinesAndOneTimes(int doctorId,DateOnly startDate,DateOnly endDate)
+		{
+			if (startDate == default && endDate == default)
 			{
-				return NotFound("Doktor bulunamadı.");
+				// Eğer başlangıç ve bitiş tarihi belirtilmemişse son 4 haftanın verilerini kullanın
+				startDate = DateOnly.FromDateTime(DateTime.Now).AddDays(-27);
+				endDate = DateOnly.FromDateTime(DateTime.Now);
 			}
 
-			return Ok(doctorAppointments);
+			var doctorInfo = _doctorService.GetDoctorRoutinesAndOneTimes(doctorId, startDate, endDate);
+
+			if (doctorInfo == null)
+			{
+				return NotFound(); // Doktor bulunamadıysa 404 Not Found döner
+			}
+
+			return Ok(doctorInfo); // Başarılı sonuç 200 OK döner
 		}
 
 
