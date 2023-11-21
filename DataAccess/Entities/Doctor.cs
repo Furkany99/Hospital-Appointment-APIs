@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
 
 namespace DataAccess.Entities;
 
@@ -18,9 +17,11 @@ public partial class Doctor
 
     public virtual Account Account { get; set; } = null!;
 
+    public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
+
     public virtual ICollection<OneTime> OneTimes { get; set; } = new List<OneTime>();
 
-	public virtual ICollection<Routine> Routines { get; set; } = new List<Routine>();
+    public virtual ICollection<Routine> Routines { get; set; } = new List<Routine>();
 
     public virtual Title Title { get; set; } = null!;
 

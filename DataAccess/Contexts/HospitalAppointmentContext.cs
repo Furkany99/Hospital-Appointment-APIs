@@ -20,6 +20,8 @@ public partial class HospitalAppointmentContext : DbContext
 
     public virtual DbSet<Admin> Admins { get; set; }
 
+    public virtual DbSet<Appointment> Appointments { get; set; }
+
     public virtual DbSet<Department> Departments { get; set; }
 
     public virtual DbSet<Doctor> Doctors { get; set; }
@@ -79,6 +81,39 @@ public partial class HospitalAppointmentContext : DbContext
                 .HasForeignKey(d => d.AccountId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Admin_Account");
+        });
+
+        modelBuilder.Entity<Appointment>(entity =>
+        {
+            entity.ToTable("Appointment");
+
+            entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.Date).HasColumnType("date");
+            entity.Property(e => e.DepartmentId).HasColumnName("Department_ID");
+            entity.Property(e => e.Detail).HasMaxLength(200);
+            entity.Property(e => e.DocId).HasColumnName("Doc_ID");
+            entity.Property(e => e.PatientId).HasColumnName("Patient_ID");
+            entity.Property(e => e.StatusId).HasColumnName("Status_ID");
+
+            entity.HasOne(d => d.Department).WithMany(p => p.Appointments)
+                .HasForeignKey(d => d.DepartmentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Appointment_Department");
+
+            entity.HasOne(d => d.Doc).WithMany(p => p.Appointments)
+                .HasForeignKey(d => d.DocId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Appointment_Doctor");
+
+            entity.HasOne(d => d.Patient).WithMany(p => p.Appointments)
+                .HasForeignKey(d => d.PatientId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Appointment_Patient");
+
+            entity.HasOne(d => d.Status).WithMany(p => p.Appointments)
+                .HasForeignKey(d => d.StatusId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Appointment_Status");
         });
 
         modelBuilder.Entity<Department>(entity =>

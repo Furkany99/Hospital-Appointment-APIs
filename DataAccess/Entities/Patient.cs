@@ -22,4 +22,6 @@ public partial class Patient
     public int AccountId { get; set; }
 
     public virtual Account Account { get; set; } = null!;
+
+    public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 }
