@@ -1,14 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Common.Dto
+﻿namespace Common.Dto
 {
 	public class DateInfoDto
 	{
-		public List<RoutineDto>? Routines { get; set; }
-		public List<OneTimeDto>? OneTimes { get; set; }
+		public int isOneTime { get; set; }
+
+		public DayOfWeek DayOfWeek { get; set; }
+
+		public bool IsOnLeave { get; set; }
+
+		public DateOnly Day { get; set; }
+
+		public List<DateInfoTimeDto>? dateInfoTimeDtos { get; set; }
 	}
 }

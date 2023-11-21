@@ -7,7 +7,6 @@ using Common.ResponseModels;
 using DataAccess.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Services;
-using System.Numerics;
 
 namespace WebAPI.Controllers
 {
@@ -18,8 +17,8 @@ namespace WebAPI.Controllers
 		private readonly DoctorService _doctorService;
 		private readonly IMapper _mapper;
 
-		public DoctorController(DoctorService doctorService,IMapper mapper)
-        {
+		public DoctorController(DoctorService doctorService, IMapper mapper)
+		{
 			_doctorService = doctorService;
 			_mapper = mapper;
 		}
@@ -33,13 +32,10 @@ namespace WebAPI.Controllers
 				_doctorService.CreateDoctor(doctors);
 				return Ok();
 			}
-
 			catch (Exception ex)
 			{
-
 				return BadRequest("Doktor oluşturulamadı: " + ex.Message);
 			}
-
 		}
 
 		[HttpGet("Doctors")]
@@ -55,8 +51,6 @@ namespace WebAPI.Controllers
 			};
 
 			return new List<DoctorListResponseModel> { doctorListResponse };
-
-
 		}
 
 		[HttpGet("{id}")]
@@ -80,7 +74,6 @@ namespace WebAPI.Controllers
 			{
 				return null;
 			}
-
 		}
 
 		[HttpDelete("{id}")]
@@ -88,7 +81,6 @@ namespace WebAPI.Controllers
 		{
 			_doctorService.DeleteDoctor(id);
 			return Ok();
-
 		}
 
 		[HttpPut("{id}/Departments")]
@@ -165,9 +157,8 @@ namespace WebAPI.Controllers
 			return routineListResponse;
 		}
 
-
 		[HttpPut("{doctorId}/routines")]
-		public RoutineUpdateRequestModel UpdateRoutineAndTimeBlocks(int doctorId,int routineId ,RoutineUpdateRequestModel routineUpdateRequest)
+		public RoutineUpdateRequestModel UpdateRoutineAndTimeBlocks(int doctorId, int routineId, RoutineUpdateRequestModel routineUpdateRequest)
 		{
 			try
 			{
@@ -184,7 +175,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpDelete("{doctorId}/routines")]
-		public IActionResult DeleteDoctorRoutine(int doctorId,int routineID)
+		public IActionResult DeleteDoctorRoutine(int doctorId, int routineID)
 		{
 			try
 			{
@@ -218,7 +209,6 @@ namespace WebAPI.Controllers
 			{
 				return NotFound("Doctor not found");
 			}
-
 		}
 
 		[HttpGet("{doctorId}/onetimes")]
@@ -234,7 +224,6 @@ namespace WebAPI.Controllers
 				endDate = DateOnly.FromDateTime(DateTime.Now.Date);
 			}
 
-
 			doctorOnetimes = _doctorService.GetDoctorOneTimes(doctorId, startDate.Value, endDate.Value);
 
 			if (doctorOnetimes == null)
@@ -244,7 +233,6 @@ namespace WebAPI.Controllers
 			}
 			else
 			{
-				
 				var oneTimeResponseModels = doctorOnetimes.Select(ot => _mapper.Map<OneTimeResponseModel>(ot)).ToList();
 				responseModel.Count = oneTimeResponseModels.Count;
 				responseModel.oneTimeResponseModels = oneTimeResponseModels;
@@ -254,18 +242,17 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpPut("{doctorId}/onetimes/{oneTimeId}")]
-		public OneTimeUpdateRequest UpdateOneTime(int doctorId, int oneTimeId,OneTimeUpdateRequest oneTimeUpdate)
+		public OneTimeUpdateRequest UpdateOneTime(int doctorId, int oneTimeId, OneTimeUpdateRequest oneTimeUpdate)
 		{
-			try 
+			try
 			{
 				var oneTimeDtos = _mapper.Map<OneTimeDto>(oneTimeUpdate);
 				oneTimeDtos.DoctorId = doctorId;
 				oneTimeDtos.Id = oneTimeId;
 				_doctorService.UpdateOneTime(doctorId, oneTimeId, oneTimeDtos);
 				return oneTimeUpdate;
-				
 			}
-			catch 
+			catch
 			{
 				throw new KeyNotFoundException("Doktor veya İzin günü bulunamadı!");
 			}
@@ -285,27 +272,26 @@ namespace WebAPI.Controllers
 			}
 		}
 
-
 		[HttpGet("{doctorId}/routines-and-onetimes")]
-		public IActionResult GetDoctorRoutinesAndOneTimes(int doctorId,DateOnly startDate,DateOnly endDate)
+		public DoctorRoutinesAndOneTimesResponseModel GetDoctorRoutinesAndOneTimes(int doctorId, DateOnly? startDate, DateOnly? endDate)
 		{
-			if (startDate == default && endDate == default)
-			{
-				// Eğer başlangıç ve bitiş tarihi belirtilmemişse son 4 haftanın verilerini kullanın
-				startDate = DateOnly.FromDateTime(DateTime.Now).AddDays(-27);
-				endDate = DateOnly.FromDateTime(DateTime.Now);
-			}
 
 			var doctorInfo = _doctorService.GetDoctorRoutinesAndOneTimes(doctorId, startDate, endDate);
+			var doctorInfoResponseModels = _mapper.Map<List<DateInfoDto>>(doctorInfo);
+
 
 			if (doctorInfo == null)
 			{
-				return NotFound(); // Doktor bulunamadıysa 404 Not Found döner
+				return null;
 			}
 
-			return Ok(doctorInfo); // Başarılı sonuç 200 OK döner
+			var responseModel = new DoctorRoutinesAndOneTimesResponseModel
+			{
+				Count = doctorInfoResponseModels.Count,
+				DoctorInfo = doctorInfoResponseModels
+			};
+
+			return responseModel;
 		}
-
-
 	}
 }

@@ -11,7 +11,6 @@ namespace Services
 	{
 		private readonly HospitalAppointmentContext context;
 		private readonly IMapper _mapper;
-		
 
 		public DoctorService(HospitalAppointmentContext Context, IMapper mapper)
 		{
@@ -362,78 +361,81 @@ namespace Services
 			context.SaveChanges();
 		}
 
-		public DateInfoDto GetDoctorRoutinesAndOneTimes(int doctorId, DateOnly startDate, DateOnly endDate)
+		public List<DateInfoDto> GetDoctorRoutinesAndOneTimes(int doctorId, DateOnly? startDate, DateOnly? endDate)
 		{
-			
 			var doctor = context.Doctors
-				.Include(d => d.Routines)
-					.ThenInclude(r => r.TimeBlocks)
-				.Include(d => d.OneTimes)
-					.ThenInclude(ot => ot.OneTimeTimeBlocks)
-				.FirstOrDefault(d => d.Id == doctorId);
+		.Include(d => d.Routines)
+			.ThenInclude(r => r.TimeBlocks)
+		.Include(d => d.OneTimes)
+			.ThenInclude(ot => ot.OneTimeTimeBlocks)
+		.FirstOrDefault(d => d.Id == doctorId);
 
 			if (doctor == null)
 			{
 				return null;
 			}
 
-			var doctorDto = _mapper.Map<DateInfoDto>(doctor);
-
-			
-			var leaveDates = new List<DateOnly>();
-
-			
-			foreach (var oneTime in doctorDto.OneTimes)
+			if (!startDate.HasValue || !endDate.HasValue)
 			{
-				foreach (var oneTimeTimeBlock in oneTime.OneTimeTimeBlocks)
-				{
-					
-					DateOnly date = oneTime.Day;
-					doctorDto.Routines.RemoveAll(r => r.DayOfWeek == (DayOfWeek)date.DayOfWeek);
-					if (!leaveDates.Contains(date))
-					{
-						leaveDates.Add(date);
-					}
-				}
+				startDate ??= DateOnly.FromDateTime(DateTime.Now);
+				endDate ??= DateOnly.FromDateTime(DateTime.Now.AddMonths(1));
 			}
 
-			
-			if (startDate == default && endDate == default)
-			{
-				startDate = DateOnly.FromDateTime(DateTime.Now).AddDays(-27);
-				endDate = DateOnly.FromDateTime(DateTime.Now);
-			}
-
-			List<RoutineDto> routinesToRemove = new List<RoutineDto>();
-
-			foreach (var routine in doctorDto.Routines)
-			{
-				foreach (var timeBlock in routine.TimeBlocks)
-				{
-					DateOnly date = startDate;
-					while (date <= endDate)
+			var routineAndOneTimeInfos = doctor.Routines
+				.SelectMany(r => Enumerable.Range(0, endDate.Value.DayNumber + 1 - startDate.Value.DayNumber)
+					.Select(i => startDate.Value.AddDays(i))
+					.Where(d => (int)d.DayOfWeek == r.DayOfWeek)
+					.Select(d => new DateInfoDto
 					{
-						if (leaveDates.Contains(date))
+						DayOfWeek = d.DayOfWeek,
+						IsOnLeave = r.IsOnLeave,
+						Day = d,
+						dateInfoTimeDtos = r.TimeBlocks.Select(tb => new DateInfoTimeDto
 						{
-							
-							routinesToRemove.Add(routine);
-							break;
-						}
-						date = date.AddDays(1);
+							StartTime = tb.StartTime,
+							EndTime = tb.EndTime
+						}).ToList()
+					}))
+				.ToList();
+
+			var lastFourWeeksOneTimes = doctor.OneTimes
+				.Where(ot => DateOnly.FromDateTime(ot.Day) >= startDate && DateOnly.FromDateTime(ot.Day) <= endDate)
+				.Select(ot => new DateInfoDto
+				{
+					DayOfWeek = ot.Day.DayOfWeek,
+					IsOnLeave = ot.IsOnLeave,
+					Day = DateOnly.FromDateTime(ot.Day),
+					dateInfoTimeDtos = ot.OneTimeTimeBlocks.Select(otb => new DateInfoTimeDto
+					{
+						StartTime = otb.StartTime,
+						EndTime = otb.EndTime
+					}).ToList()
+				})
+				.ToList();
+
+			foreach (var ot in lastFourWeeksOneTimes)
+			{
+				var existingRoutineInfo = routineAndOneTimeInfos.FirstOrDefault(r =>
+				r.Day.Equals(ot.Day));
+			
+
+				if (existingRoutineInfo == null)
+				{
+					routineAndOneTimeInfos.Add(ot);
+				}
+				else if (ot.IsOnLeave)
+				{
+					existingRoutineInfo.IsOnLeave = true;
+
+					var leaveDayInfo = lastFourWeeksOneTimes.FirstOrDefault(l => l.Day.Equals(ot.Day));
+					if (leaveDayInfo != null)
+					{
+						existingRoutineInfo.dateInfoTimeDtos = leaveDayInfo.dateInfoTimeDtos;
 					}
 				}
 			}
 
-			
-			foreach (var routineToRemove in routinesToRemove)
-			{
-				doctorDto.Routines.Remove(routineToRemove);
-			}
-
-			return doctorDto;
+			return routineAndOneTimeInfos.OrderBy(info => info.Day).ToList();
 		}
-
-
-
 	}
 }
