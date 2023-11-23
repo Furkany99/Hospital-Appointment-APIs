@@ -19,6 +19,8 @@ public partial class Appointment
 
     public int StatusId { get; set; }
 
+    public TimeSpan Duration { get; set; }
+
     public virtual Department Department { get; set; } = null!;
 
     public virtual Doctor Doc { get; set; } = null!;

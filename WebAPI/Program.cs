@@ -23,6 +23,7 @@ builder.Services.AddAutoMapper(typeof(TitleMapper).Assembly);
 builder.Services.AddAutoMapper(typeof (RoutineMapper).Assembly);
 builder.Services.AddAutoMapper(typeof(OneTimeMapper).Assembly);
 builder.Services.AddAutoMapper(typeof(DateInfoMapper).Assembly);
+builder.Services.AddAutoMapper(typeof(AppointmentMapper).Assembly);
 
 var app = builder.Build();
 

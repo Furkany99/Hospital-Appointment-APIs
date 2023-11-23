@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -100,6 +101,37 @@ namespace Services
 			var patientDto = _mapper.Map<PatientDto>(patientById);
 
 			return patientDto;
+		}
+
+		public void CreateAppointment(AppointmentDto appointmentDto) 
+		{
+			Appointment appointment = _mapper.Map<Appointment>(appointmentDto);
+			Status status = _mapper.Map<Status>(appointmentDto);
+
+			DateTime now = DateTime.Now;
+
+			if (appointment.Date < now)
+			{
+				status.Name = "Randevu Tamamlandı";
+			}
+			
+			else if (appointment.Date > now)
+			{
+				status.Name = "Beklemede";
+			}
+			
+			else
+			{
+				status.Name = "Randevu İptal Edildi";
+			}
+
+
+			appointment.PatientId = appointmentDto.PatientId;
+			appointment.Status = status;
+			
+			_context.Statuses.Add(status);
+			_context.Appointments.Add(appointment);
+			_context.SaveChanges();
 		}
 
 	}
