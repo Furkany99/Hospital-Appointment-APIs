@@ -11,19 +11,19 @@ namespace Common.Dto
 	{
 		public int Id { get; set; }
 
-		public DateTime Date { get; set; }
+		public DateOnly Date { get; set; }
 
 		public int DepartmentId { get; set; }
 
 		public string? Detail { get; set; }
-
-		public TimeOnly Duration { get; set; }
 
 		public int DocId { get; set; }
 
 		public int PatientId { get; set; }
 
 		public int StatusId { get; set; }
+
+		public List<AppointmentTimeDto>? appointmentTimes { get; set; }
 
 	}
 }

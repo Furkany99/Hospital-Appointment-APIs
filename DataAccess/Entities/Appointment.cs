@@ -19,7 +19,7 @@ public partial class Appointment
 
     public int StatusId { get; set; }
 
-    public TimeSpan Duration { get; set; }
+    public virtual ICollection<AppointmentTime> AppointmentTimes { get; set; } = new List<AppointmentTime>();
 
     public virtual Department Department { get; set; } = null!;
 

@@ -103,36 +103,133 @@ namespace Services
 			return patientDto;
 		}
 
-		public void CreateAppointment(AppointmentDto appointmentDto) 
+		public void CreateAppointment(AppointmentDto appointmentDto)
 		{
 			Appointment appointment = _mapper.Map<Appointment>(appointmentDto);
 			Status status = _mapper.Map<Status>(appointmentDto);
 
 			DateTime now = DateTime.Now;
 
+			var doctorOnLeaveDays = _context.OneTimes
+				.Where(ot => ot.DoctorId == appointmentDto.DocId && ot.IsOnLeave)
+				.Select(ot => DateOnly.FromDateTime(ot.Day))
+				.ToList();
+
+			DateOnly appointmentDate = appointmentDto.Date;
+
+			if (doctorOnLeaveDays.Contains(appointmentDate))
+			{
+				throw new InvalidOperationException("Randevu oluşturulamadı. Doktor izinli olduğu bir tarih için randevu alınamaz.");
+			}
+
+			if (appointment.Date < now.Date)
+			{
+				throw new InvalidOperationException("Randevu oluşturulamadı. Geçmiş bir tarih için randevu alınamaz.");
+			}
+
 			if (appointment.Date < now)
 			{
 				status.Name = "Randevu Tamamlandı";
 			}
-			
 			else if (appointment.Date > now)
 			{
 				status.Name = "Beklemede";
 			}
-			
 			else
 			{
 				status.Name = "Randevu İptal Edildi";
 			}
 
+			bool isDoctorAvailable = IsDoctorAvailableForAppointment(appointmentDto.DocId, appointmentDto.Date, appointmentDto.appointmentTimes.Select(s => s.StartTime).First(), appointmentDto.appointmentTimes.Select(s => s.EndTime).First());
+
+			if (!isDoctorAvailable)
+			{
+				throw new InvalidOperationException("Randevu oluşturulamadı. Doktor müsait değil.");
+			}
 
 			appointment.PatientId = appointmentDto.PatientId;
 			appointment.Status = status;
-			
+
 			_context.Statuses.Add(status);
 			_context.Appointments.Add(appointment);
 			_context.SaveChanges();
 		}
+
+
+		public void DeleteAppointment(int id)
+		{
+			var appoinment = _context.Appointments.Find(id);
+
+			if (appoinment != null)
+			{
+				_context.Appointments.Remove(appoinment);
+				_context.SaveChanges();
+			}
+		}
+
+
+		public bool IsDoctorAvailableForAppointment(int doctorId, DateOnly date, TimeOnly startTime, TimeOnly endTime)
+		{
+			if (date < DateOnly.FromDateTime(DateTime.Today))
+			{
+				// Geçmiş bir tarih için randevu alınamaz
+				return false;
+			}
+
+			var doctorRoutine = _context.Routines
+				.Include(r => r.TimeBlocks)
+				.FirstOrDefault(r => r.DoctorId == doctorId && (int)r.DayOfWeek == (int)date.DayOfWeek);
+
+			if (doctorRoutine != null)
+			{
+				var isWithinTimeBlocks = doctorRoutine.TimeBlocks.Any(tb => startTime.ToTimeSpan() >= tb.StartTime && endTime.ToTimeSpan() <= tb.EndTime);
+
+				if (isWithinTimeBlocks)
+				{
+					// Doktorun rutin saatleri içinde ise, randevu alabilir
+					return true;
+				}
+
+				// Doktorun rutin saatleri içinde değilse, randevularına da bakarak kontrol et
+				var hasAppointment = _context.Appointments.Any(a => a.DocId == doctorId && DateOnly.FromDateTime(a.Date) == date && a.AppointmentTimes.Any(at => at.StartTime <= startTime.ToTimeSpan() && at.EndTime >= endTime.ToTimeSpan()));
+
+				return !hasAppointment;
+			}
+
+			return false; // Belirtilen tarih doktorun rutin günleri arasında değilse
+		}
+
+
+		public List<AppointmentDto> GetPatientAppointments(int patientId)
+		{
+			DateTime today = DateTime.Today;
+
+			var appointments = _context.Appointments.Include(a => a.Status).Include(x => x.AppointmentTimes)
+				.Where(a => a.PatientId == patientId)
+				.ToList();
+
+			foreach (var appointment in appointments)
+			{
+				if (appointment.Date < today)
+				{
+					if (appointment.Status.Name == "Beklemede")
+					{
+						appointment.Status.Name = "Randevu Tamamlandı";
+					}
+					else if (appointment.Status.Name != "Randevu Tamamlandı")
+					{
+						appointment.Status.Name = "Randevu İptal Edildi";
+					}
+
+				}
+			}
+			_context.SaveChanges();
+
+			var appointmentList = appointments.Select(appointment => _mapper.Map<AppointmentDto>(appointment)).ToList();
+
+			return appointmentList;
+		}
+
 
 	}
 

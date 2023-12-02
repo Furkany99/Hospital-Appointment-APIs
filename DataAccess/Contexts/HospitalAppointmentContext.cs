@@ -22,6 +22,8 @@ public partial class HospitalAppointmentContext : DbContext
 
     public virtual DbSet<Appointment> Appointments { get; set; }
 
+    public virtual DbSet<AppointmentTime> AppointmentTimes { get; set; }
+
     public virtual DbSet<Department> Departments { get; set; }
 
     public virtual DbSet<Doctor> Doctors { get; set; }
@@ -114,6 +116,19 @@ public partial class HospitalAppointmentContext : DbContext
                 .HasForeignKey(d => d.StatusId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Appointment_Status");
+        });
+
+        modelBuilder.Entity<AppointmentTime>(entity =>
+        {
+            entity.ToTable("AppointmentTime");
+
+            entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.AppointmentId).HasColumnName("AppointmentID");
+
+            entity.HasOne(d => d.Appointment).WithMany(p => p.AppointmentTimes)
+                .HasForeignKey(d => d.AppointmentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_AppointmentTime_Appointment");
         });
 
         modelBuilder.Entity<Department>(entity =>
