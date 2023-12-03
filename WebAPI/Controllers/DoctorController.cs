@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Common.Dto;
 using Common.Models.RequestModels;
+using Common.Models.RequestModels.Doctor;
 using Common.Models.ResponseModels;
 using Common.RequestModels;
 using Common.ResponseModels;
@@ -10,7 +11,7 @@ using Services;
 
 namespace WebAPI.Controllers
 {
-	[ApiController]
+    [ApiController]
 	[Route("[controller]")]
 	public class DoctorController : Controller
 	{

@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using Common.Dto;
-using Common.Models.RequestModels;
-using Common.Models.ResponseModels;
+using Common.Models.RequestModels.Appointment;
+using Common.Models.ResponseModels.Appointment;
 using Common.RequestModels;
 using Common.ResponseModels;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +9,7 @@ using Services;
 
 namespace WebAPI.Controllers
 {
-	[ApiController]
+    [ApiController]
 	[Route("[controller]")]
 	public class PatientController : ControllerBase
 	{
@@ -45,10 +45,10 @@ namespace WebAPI.Controllers
 			return Ok();
 		}
 
-		[HttpGet("Appointments")]
-		public List<AppointmentListResponseModel> GetAppointments(int id)
+		[HttpGet("Appointments/{patientId}")]
+		public List<AppointmentListResponseModel> GetAppointments(int patientId)
 		{
-			var appointments = _patientService.GetPatientAppointments(id);
+			var appointments = _patientService.GetPatientAppointments(patientId);
 			var appointmentResponseList = appointments.Select(appointmentDto => _mapper.Map<AppointmentResponseModel>(appointmentDto)).ToList();
 
 			var appointmentListResponse = new AppointmentListResponseModel
@@ -60,6 +60,21 @@ namespace WebAPI.Controllers
 			return new List<AppointmentListResponseModel> { appointmentListResponse };
 
 
+		}
+
+		[HttpPut("Appointment/{id}")]
+		public AppointmentUpdateRequestModel UpdateAppointment(int id, AppointmentUpdateRequestModel requestModel)
+		{
+			var updateAppointment = _patientService.UpdateAppointment(id, requestModel);
+			var AppointmentUpdateRequest = _mapper.Map<AppointmentUpdateRequestModel>(updateAppointment);
+			if(updateAppointment != null)
+			{
+				return AppointmentUpdateRequest;
+			}
+			else
+			{
+				return null;
+			}
 		}
 	}
 }

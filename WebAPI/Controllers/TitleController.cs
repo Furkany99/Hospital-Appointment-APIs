@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Common.Dto;
 using Common.Models.RequestModels;
+using Common.Models.RequestModels.Title;
 using Common.Models.ResponseModels;
 using Common.ResponseModels;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +9,7 @@ using Services;
 
 namespace WebAPI.Controllers
 {
-	[Route("admin/[controller]")]
+    [Route("admin/[controller]")]
 	[ApiController]
 	public class TitleController : ControllerBase
 	{

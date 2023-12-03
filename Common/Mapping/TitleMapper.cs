@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using Common.Dto;
-using Common.Models.RequestModels;
-using Common.Models.ResponseModels;
+using Common.Models.RequestModels.Title;
+using Common.Models.ResponseModels.Title;
 using DataAccess.Entities;
 using System;
 using System.Collections.Generic;
@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Common.Mapping
 {
-	public class TitleMapper:Profile
+    public class TitleMapper:Profile
 	{
         public TitleMapper()
         {

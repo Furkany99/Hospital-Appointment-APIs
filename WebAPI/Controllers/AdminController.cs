@@ -1,8 +1,9 @@
 ﻿using AutoMapper;
 using Common.Dto;
 using Common.Models.RequestModels;
+using Common.Models.RequestModels.Department;
+using Common.Models.RequestModels.Patient;
 using Common.Models.ResponseModels;
-using Common.RequestModels;
 using Common.ResponseModels;
 using DataAccess.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +13,7 @@ using Services;
 
 namespace WebAPI.Controllers
 {
-	[ApiController]
+    [ApiController]
 	[Route("[controller]")]
 	public class AdminController : ControllerBase
 	{

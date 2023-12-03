@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Common.Dto;
 using Common.Models.RequestModels;
+using Common.Models.RequestModels.Doctor;
 using Common.Models.ResponseModels;
 using Common.RequestModels;
 using Common.ResponseModels;
@@ -14,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Common.Mapping
 {
-	public class DoctorMapper:Profile
+    public class DoctorMapper:Profile
 	{
 		public DoctorMapper()
 		{

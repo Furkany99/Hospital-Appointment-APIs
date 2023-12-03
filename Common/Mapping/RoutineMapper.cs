@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using Common.Dto;
-using Common.Models.RequestModels;
+using Common.Models.RequestModels.Routine;
+using Common.Models.RequestModels.TimeBlock;
 using Common.Models.ResponseModels;
+using Common.Models.ResponseModels.Routine;
 using DataAccess.Entities;
 using System;
 using System.Collections.Generic;
@@ -11,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Common.Mapping
 {
-	public class RoutineMapper:Profile
+    public class RoutineMapper:Profile
 	{
 		public RoutineMapper()
         {

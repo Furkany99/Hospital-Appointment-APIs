@@ -1,12 +1,13 @@
 ﻿using AutoMapper;
 using Common.Dto;
 using Common.Models.RequestModels;
+using Common.Models.RequestModels.OneTime;
 using Common.Models.ResponseModels;
 using DataAccess.Entities;
 
 namespace Common.Mapping
 {
-	public class OneTimeMapper : Profile
+    public class OneTimeMapper : Profile
 	{
 		public OneTimeMapper()
 		{

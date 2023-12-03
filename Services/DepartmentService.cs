@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Common.Dto;
-using Common.Models.RequestModels;
+using Common.Models.RequestModels.Department;
 using DataAccess.Contexts;
 using DataAccess.Entities;
 using System;
@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Services
 {
-	public class DepartmentService
+    public class DepartmentService
 	{
 		private readonly HospitalAppointmentContext _context;
 		private readonly IMapper _mapper;

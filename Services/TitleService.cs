@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Common.Dto;
-using Common.Models.RequestModels;
+using Common.Models.RequestModels.Title;
 using DataAccess.Contexts;
 using DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Services
 {
-	public class TitleService
+    public class TitleService
 	{
         private readonly IMapper _mapper;
         private readonly HospitalAppointmentContext _context;

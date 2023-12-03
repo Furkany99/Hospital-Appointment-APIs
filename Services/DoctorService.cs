@@ -1,13 +1,13 @@
 ﻿using AutoMapper;
 using Common.Dto;
-using Common.Models.RequestModels;
+using Common.Models.RequestModels.Doctor;
 using DataAccess.Contexts;
 using DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Services
 {
-	public class DoctorService
+    public class DoctorService
 	{
 		private readonly HospitalAppointmentContext context;
 		private readonly IMapper _mapper;

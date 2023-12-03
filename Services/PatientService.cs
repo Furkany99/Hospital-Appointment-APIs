@@ -230,6 +230,45 @@ namespace Services
 			return appointmentList;
 		}
 
+		public AppointmentDto UpdateAppointment(int Appointmentid, AppointmentUpdateRequestModel updateRequestModel)
+		{
+			var PatientAppointment = _context.Patients
+			.Include(p => p.Appointments).ThenInclude(a => a.Status)
+			.FirstOrDefault(p => p.Appointments.Any(a => a.Id == Appointmentid));
+
+			if (PatientAppointment == null || updateRequestModel == null)
+			{
+				return null;
+			}
+
+			var appointmentToUpdate = PatientAppointment.Appointments.FirstOrDefault(a => a.Id == Appointmentid);
+
+			if (appointmentToUpdate == null || appointmentToUpdate.Status.Name == "Randevu Tamamlandı" || updateRequestModel.Date < DateOnly.FromDateTime(DateTime.Today))
+			{
+				return null;
+			}
+
+			var existingTimeBlocks = _context.AppointmentTimes.Where(t => t.AppointmentId == Appointmentid).ToList();
+			_context.AppointmentTimes.RemoveRange(existingTimeBlocks);
+
+			
+			_mapper.Map(updateRequestModel, appointmentToUpdate);
+
+			if (updateRequestModel.appointmentTimes != null)
+			{
+				foreach (var updatedTimeBlock in updateRequestModel.appointmentTimes)
+				{
+					var newTimeBlock = _mapper.Map<AppointmentTime>(updatedTimeBlock);
+				}
+			}
+
+			_context.SaveChanges();
+
+			AppointmentDto updatedAppointmentDto = _mapper.Map<AppointmentDto>(appointmentToUpdate);
+			return updatedAppointmentDto;
+
+		}
+
 
 	}
 

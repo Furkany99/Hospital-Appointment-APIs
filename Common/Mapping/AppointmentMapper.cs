@@ -1,17 +1,19 @@
 ﻿using AutoMapper;
 using Common.Dto;
 using Common.Models.RequestModels;
+using Common.Models.RequestModels.Appointment;
 using Common.Models.ResponseModels;
 using DataAccess.Entities;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Common.Mapping
 {
-	public class AppointmentMapper:Profile
+    public class AppointmentMapper:Profile
 	{
         public AppointmentMapper()
         {
@@ -35,6 +37,20 @@ namespace Common.Mapping
 				.ForMember(dest => dest.EndTime, opt => opt.MapFrom(src => src.EndTime.ToTimeSpan()));
 			CreateMap<AppointmentDto, AppointmentResponseModel>();
 			CreateMap<AppointmentDto, AppointmentListResponseModel>();
+			CreateMap<AppointmentDto, AppointmentUpdateRequestModel>();
+			CreateMap<AppointmentUpdateRequestModel, AppointmentDto>();
+			CreateMap<AppointmentUpdateRequestModel, Appointment>().ForMember(a => a.Date, opt => opt.MapFrom(src => new DateTime(src.Date.Year, src.Date.Month, src.Date.Day)))
+				.ForMember(dest => dest.AppointmentTimes, opt => opt.MapFrom(src =>
+		src.appointmentTimes.Select(appointmentTime => new AppointmentTime
+		{
+			StartTime = appointmentTime.StartTime.ToTimeSpan(),
+			EndTime = appointmentTime.EndTime.ToTimeSpan()
+		})));
+			//CreateMap<AppointmentUpdateRequestModel, Appointment>();
+			CreateMap<AppointmentTimeDto,AppointmentTime>().ForMember(a => a.StartTime, opt => opt.MapFrom(src => src.StartTime.ToTimeSpan()))
+				.ForMember(x => x.EndTime, opt => opt.MapFrom(src => src.EndTime.ToTimeSpan()));
+
+
 
 
 		}

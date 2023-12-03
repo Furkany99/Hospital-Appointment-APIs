@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using Common.Dto;
 using Common.Models.RequestModels;
-using Common.RequestModels;
+using Common.Models.RequestModels.Patient;
 using Common.ResponseModels;
 using DataAccess.Entities;
 using System;
@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Services.Mapping
 {
-	public class PatientMapper: Profile
+    public class PatientMapper: Profile
 	{
 		public PatientMapper()
         {
