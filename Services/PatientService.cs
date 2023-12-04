@@ -1,33 +1,25 @@
 ﻿using AutoMapper;
 using Common.Dto;
-using Common.Models.RequestModels.Appointment;
 using Common.Models.RequestModels.Patient;
 using DataAccess.Contexts;
 using DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Services
 {
-    public class PatientService
+	public class PatientService
 	{
 		private readonly HospitalAppointmentContext _context;
 		private readonly IMapper _mapper;
 
 		public PatientService(HospitalAppointmentContext Context, IMapper mapper)
-        {
+		{
 			_context = Context;
 			_mapper = mapper;
 		}
 
 		public void CreatePatient(PatientDto patientDto)
 		{
-			
 			Patient patient = _mapper.Map<Patient>(patientDto);
 			Account account = _mapper.Map<Account>(patientDto);
 
@@ -37,13 +29,9 @@ namespace Services
 			_context.Accounts.Add(account);
 
 			_context.SaveChanges();
-
-
-
-
 		}
 
-		public PatientDto Update(int id,PatientUpdateRequestModel patientUpdate) 
+		public PatientDto Update(int id, PatientUpdateRequestModel patientUpdate)
 		{
 			var existingPatient = _context.Patients.Find(id);
 
@@ -56,40 +44,32 @@ namespace Services
 
 				PatientDto updatedPatientDto = _mapper.Map<PatientDto>(existingPatient);
 				return updatedPatientDto;
-
 			}
-
 			else
 			{
 				throw new KeyNotFoundException("Hasta bulunamadı veya güncelleme verisi eksik.");
 			}
-
 		}
 
-		public void Delete(int id) 
+		public void Delete(int id)
 		{
-
 			var existingPatient = _context.Patients.Find(id);
 
 			if (existingPatient != null)
 			{
 				_context.Patients.Remove(existingPatient);
 				_context.SaveChanges();
-
 			}
-			
 		}
 
-		public List<PatientDto> GetPatients() 
+		public List<PatientDto> GetPatients()
 		{
 			var patients = _context.Patients.Include(p => p.Account).ToList();
 			var patientsList = patients.Select(patient => _mapper.Map<PatientDto>(patient)).ToList();
 			return patientsList;
-			
 		}
 
-
-		public PatientDto GetPatientById(int id) 
+		public PatientDto GetPatientById(int id)
 		{
 			var patientById = _context.Patients
 			.Include(x => x.Account)
@@ -108,6 +88,8 @@ namespace Services
 		{
 			Appointment appointment = _mapper.Map<Appointment>(appointmentDto);
 			Status status = _mapper.Map<Status>(appointmentDto);
+
+			Status defaultStatus = _context.Statuses.FirstOrDefault(s => s.Name == "Beklemede");
 
 			DateTime now = DateTime.Now;
 
@@ -128,17 +110,13 @@ namespace Services
 				throw new InvalidOperationException("Randevu oluşturulamadı. Geçmiş bir tarih için randevu alınamaz.");
 			}
 
-			if (appointment.Date < now)
+			if (defaultStatus != null)
 			{
-				status.Name = "Randevu Tamamlandı";
-			}
-			else if (appointment.Date > now)
-			{
-				status.Name = "Beklemede";
+				appointment.StatusId = defaultStatus.Id;
 			}
 			else
 			{
-				status.Name = "Randevu İptal Edildi";
+				throw new InvalidOperationException("Varsayılan statü bulunamadı!");
 			}
 
 			bool isDoctorAvailable = IsDoctorAvailableForAppointment(appointmentDto.DocId, appointmentDto.Date, appointmentDto.appointmentTimes.Select(s => s.StartTime).First(), appointmentDto.appointmentTimes.Select(s => s.EndTime).First());
@@ -149,13 +127,10 @@ namespace Services
 			}
 
 			appointment.PatientId = appointmentDto.PatientId;
-			appointment.Status = status;
 
-			_context.Statuses.Add(status);
 			_context.Appointments.Add(appointment);
 			_context.SaveChanges();
 		}
-
 
 		public void DeleteAppointment(int id)
 		{
@@ -167,7 +142,6 @@ namespace Services
 				_context.SaveChanges();
 			}
 		}
-
 
 		public bool IsDoctorAvailableForAppointment(int doctorId, DateOnly date, TimeOnly startTime, TimeOnly endTime)
 		{
@@ -191,8 +165,14 @@ namespace Services
 					return true;
 				}
 
-				// Doktorun rutin saatleri içinde değilse, randevularına da bakarak kontrol et
-				var hasAppointment = _context.Appointments.Any(a => a.DocId == doctorId && DateOnly.FromDateTime(a.Date) == date && a.AppointmentTimes.Any(at => at.StartTime <= startTime.ToTimeSpan() && at.EndTime >= endTime.ToTimeSpan()));
+				var hasAppointment = _context.Appointments.Any(a =>
+				a.DocId == doctorId &&
+				DateOnly.FromDateTime(a.Date) == date &&
+				a.AppointmentTimes.Any(at =>
+				(
+					(startTime.ToTimeSpan() >= at.StartTime && startTime.ToTimeSpan() < at.EndTime) ||
+					(endTime.ToTimeSpan() > at.StartTime && endTime.ToTimeSpan() <= at.EndTime) ||
+					(startTime.ToTimeSpan() <= at.StartTime && endTime.ToTimeSpan() >= at.EndTime))));
 
 				return !hasAppointment;
 			}
@@ -200,30 +180,56 @@ namespace Services
 			return false; // Belirtilen tarih doktorun rutin günleri arasında değilse
 		}
 
-
-		public List<AppointmentDto> GetPatientAppointments(int patientId)
+		public List<AppointmentDto> GetPatientAppointments(int patientId, int statusId, int doctorId, int departmentId, DateTime? startTime = null, DateTime? endTime = null)
 		{
+
+			var appointmentsQuery = _context.Appointments
+				.Include(a => a.Status)
+				.Include(x => x.AppointmentTimes)
+				.Where(a => a.PatientId == patientId);
+
 			DateTime today = DateTime.Today;
 
-			var appointments = _context.Appointments.Include(a => a.Status).Include(x => x.AppointmentTimes)
-				.Where(a => a.PatientId == patientId)
-				.ToList();
+			var pendingStatus = _context.Statuses.FirstOrDefault(s => s.Name == "Beklemede");
+			var completedStatus = _context.Statuses.FirstOrDefault(s => s.Name == "Tamamlandi");
+			var cancelledStatus = _context.Statuses.FirstOrDefault(s => s.Name == "Iptal edildi");
 
-			foreach (var appointment in appointments)
+			
+			if (statusId != 0)
 			{
-				if (appointment.Date < today)
-				{
-					if (appointment.Status.Name == "Beklemede")
-					{
-						appointment.Status.Name = "Randevu Tamamlandı";
-					}
-					else if (appointment.Status.Name != "Randevu Tamamlandı")
-					{
-						appointment.Status.Name = "Randevu İptal Edildi";
-					}
-
-				}
+				appointmentsQuery = appointmentsQuery.Where(a => a.Status.Id == statusId);
 			}
+
+			if (doctorId != 0)
+			{
+				appointmentsQuery = appointmentsQuery.Where(a => a.DocId == doctorId);
+			}
+
+			if (departmentId != 0)
+			{
+				appointmentsQuery = appointmentsQuery.Where(a => a.Department.Id == departmentId);
+			}
+
+			if (startTime.HasValue && endTime.HasValue)
+			{
+				appointmentsQuery = appointmentsQuery.Where(a => a.Date >= startTime && a.Date <= endTime);
+			}
+			else
+			{
+				appointmentsQuery = appointmentsQuery.Where(a => a.Date >= today); // Sadece gelecekteki randevuları getir
+			}
+
+			var appointments = appointmentsQuery.ToList();
+
+			var pastAppointments = _context.Appointments
+			.Where(a => a.Date < today && a.Status != completedStatus && a.Status != cancelledStatus)
+			.ToList();
+
+			foreach (var appointment in pastAppointments)
+			{
+				appointment.Status = appointment.Status.Name == pendingStatus.Name ? completedStatus : cancelledStatus;
+			}
+
 			_context.SaveChanges();
 
 			var appointmentList = appointments.Select(appointment => _mapper.Map<AppointmentDto>(appointment)).ToList();
@@ -231,47 +237,5 @@ namespace Services
 			return appointmentList;
 		}
 
-		public AppointmentDto UpdateAppointment(int Appointmentid, AppointmentUpdateRequestModel updateRequestModel)
-		{
-			var PatientAppointment = _context.Patients
-			.Include(p => p.Appointments).ThenInclude(a => a.Status)
-			.FirstOrDefault(p => p.Appointments.Any(a => a.Id == Appointmentid));
-
-			if (PatientAppointment == null || updateRequestModel == null)
-			{
-				return null;
-			}
-
-			var appointmentToUpdate = PatientAppointment.Appointments.FirstOrDefault(a => a.Id == Appointmentid);
-
-			if (appointmentToUpdate == null || appointmentToUpdate.Status.Name == "Randevu Tamamlandı" || updateRequestModel.Date < DateOnly.FromDateTime(DateTime.Today))
-			{
-				return null;
-			}
-
-			var existingTimeBlocks = _context.AppointmentTimes.Where(t => t.AppointmentId == Appointmentid).ToList();
-			_context.AppointmentTimes.RemoveRange(existingTimeBlocks);
-
-			
-			_mapper.Map(updateRequestModel, appointmentToUpdate);
-
-			if (updateRequestModel.appointmentTimes != null)
-			{
-				foreach (var updatedTimeBlock in updateRequestModel.appointmentTimes)
-				{
-					var newTimeBlock = _mapper.Map<AppointmentTime>(updatedTimeBlock);
-				}
-			}
-
-			_context.SaveChanges();
-
-			AppointmentDto updatedAppointmentDto = _mapper.Map<AppointmentDto>(appointmentToUpdate);
-			return updatedAppointmentDto;
-
-		}
-
-
 	}
-
-	
 }

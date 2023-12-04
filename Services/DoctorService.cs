@@ -437,5 +437,16 @@ namespace Services
 
 			return routineAndOneTimeInfos.OrderBy(info => info.Day).ToList();
 		}
+
+		public void AddPrescriptionToAppointment(int appointmentId, string prescription)
+		{
+			var appointment = context.Appointments.FirstOrDefault(a => a.Id == appointmentId);
+			if (appointment != null)
+			{
+				appointment.Prescription = prescription;
+				context.SaveChanges();
+			}
+		}
+
 	}
 }

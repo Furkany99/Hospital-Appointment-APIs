@@ -23,6 +23,8 @@ namespace Common.Dto
 
 		public int StatusId { get; set; }
 
+		public string? Prescription { get; set; }
+
 		public List<AppointmentTimeDto>? appointmentTimes { get; set; }
 
 	}

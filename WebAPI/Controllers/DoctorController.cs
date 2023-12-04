@@ -7,6 +7,7 @@ using Common.Models.ResponseModels.Doctor;
 using Common.Models.ResponseModels.OneTime;
 using Common.Models.ResponseModels.Routine;
 using DataAccess.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services;
 
@@ -23,6 +24,7 @@ namespace WebAPI.Controllers
 		{
 			_doctorService = doctorService;
 			_mapper = mapper;
+			
 		}
 
 		[HttpPost("Doctors")]
@@ -294,6 +296,14 @@ namespace WebAPI.Controllers
 			};
 
 			return responseModel;
+		}
+
+		[Authorize(Roles = "Doctor")]
+		[HttpPost("{appointmentId}/prescription")]
+		public IActionResult AddPrescriptionToAppointment(int appointmentId, [FromBody] string prescription)
+		{
+			_doctorService.AddPrescriptionToAppointment(appointmentId, prescription);
+			return Ok("Reçete başarıyla eklendi.");
 		}
 	}
 }

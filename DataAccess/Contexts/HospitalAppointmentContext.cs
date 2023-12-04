@@ -95,6 +95,7 @@ public partial class HospitalAppointmentContext : DbContext
             entity.Property(e => e.Detail).HasMaxLength(200);
             entity.Property(e => e.DocId).HasColumnName("Doc_ID");
             entity.Property(e => e.PatientId).HasColumnName("Patient_ID");
+            entity.Property(e => e.Prescription).HasColumnType("text");
             entity.Property(e => e.StatusId).HasColumnName("Status_ID");
 
             entity.HasOne(d => d.Department).WithMany(p => p.Appointments)
@@ -127,7 +128,6 @@ public partial class HospitalAppointmentContext : DbContext
 
             entity.HasOne(d => d.Appointment).WithMany(p => p.AppointmentTimes)
                 .HasForeignKey(d => d.AppointmentId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_AppointmentTime_Appointment");
         });
 
