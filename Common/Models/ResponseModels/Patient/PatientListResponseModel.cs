@@ -1,6 +1,4 @@
-﻿using Common.ResponseModels;
-
-namespace Common.Models.ResponseModels.Patient
+﻿namespace Common.Models.ResponseModels.Patient
 {
     public class PatientListResponseModel
     {

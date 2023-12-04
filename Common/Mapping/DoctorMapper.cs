@@ -1,10 +1,8 @@
 ﻿using AutoMapper;
 using Common.Dto;
-using Common.Models.RequestModels;
 using Common.Models.RequestModels.Doctor;
 using Common.Models.ResponseModels;
-using Common.RequestModels;
-using Common.ResponseModels;
+using Common.Models.ResponseModels.Doctor;
 using DataAccess.Entities;
 using Services;
 using System;

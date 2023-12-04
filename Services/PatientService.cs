@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Common.Dto;
-using Common.Models.RequestModels;
+using Common.Models.RequestModels.Appointment;
+using Common.Models.RequestModels.Patient;
 using DataAccess.Contexts;
 using DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Services
 {
-	public class PatientService
+    public class PatientService
 	{
 		private readonly HospitalAppointmentContext _context;
 		private readonly IMapper _mapper;

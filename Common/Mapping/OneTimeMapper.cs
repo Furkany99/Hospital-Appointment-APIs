@@ -1,8 +1,7 @@
 ﻿using AutoMapper;
 using Common.Dto;
-using Common.Models.RequestModels;
 using Common.Models.RequestModels.OneTime;
-using Common.Models.ResponseModels;
+using Common.Models.ResponseModels.OneTime;
 using DataAccess.Entities;
 
 namespace Common.Mapping

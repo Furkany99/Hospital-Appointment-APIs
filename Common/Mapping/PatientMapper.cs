@@ -1,8 +1,7 @@
 ﻿using AutoMapper;
 using Common.Dto;
-using Common.Models.RequestModels;
 using Common.Models.RequestModels.Patient;
-using Common.ResponseModels;
+using Common.Models.ResponseModels.Patient;
 using DataAccess.Entities;
 using System;
 using System.Collections.Generic;

@@ -1,8 +1,7 @@
 ﻿using AutoMapper;
 using Common.Dto;
-using Common.Models.RequestModels;
 using Common.Models.RequestModels.Title;
-using Common.Models.ResponseModels;
+using Common.Models.ResponseModels.Title;
 using Common.ResponseModels;
 using Microsoft.AspNetCore.Mvc;
 using Services;

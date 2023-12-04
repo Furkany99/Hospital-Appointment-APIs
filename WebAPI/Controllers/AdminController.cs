@@ -1,10 +1,9 @@
 ﻿using AutoMapper;
 using Common.Dto;
-using Common.Models.RequestModels;
 using Common.Models.RequestModels.Department;
 using Common.Models.RequestModels.Patient;
-using Common.Models.ResponseModels;
-using Common.ResponseModels;
+using Common.Models.ResponseModels.Department;
+using Common.Models.ResponseModels.Patient;
 using DataAccess.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
