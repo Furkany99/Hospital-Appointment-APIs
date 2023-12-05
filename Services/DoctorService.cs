@@ -4,6 +4,7 @@ using Common.Models.RequestModels.Doctor;
 using DataAccess.Contexts;
 using DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace Services
 {
@@ -435,16 +436,57 @@ namespace Services
 				}
 			}
 
-			return routineAndOneTimeInfos.OrderBy(info => info.Day).ToList();
+			var doctorAppointments = context.Appointments
+		.Where(a => a.DocId == doctorId && new DateTime(startDate.Value.Year,startDate.Value.Month,startDate.Value.Day) <= a.Date.Date && a.Date.Date <= new DateTime(endDate.Value.Year,endDate.Value.Month,endDate.Value.Day))
+		.SelectMany(a => a.AppointmentTimes.Select(at => new { Date = a.Date.Date, StartTime = at.StartTime, EndTime = at.EndTime }))
+		.ToList();
+
+			foreach (var info in routineAndOneTimeInfos)
+			{
+				info.IsAvailable = !doctorAppointments.Any(appointment =>
+					DateOnly.FromDateTime(appointment.Date) == info.Day &&
+					appointment.StartTime <= info.dateInfoTimeDtos.Min(dto => dto.StartTime) &&
+					appointment.EndTime >= info.dateInfoTimeDtos.Max(dto => dto.EndTime)
+				);
+			}
+
+			var filteredInfos = routineAndOneTimeInfos.Where(info => info.IsAvailable).ToList();
+
+			return filteredInfos.OrderBy(info => info.Day).ToList();
 		}
 
 		public void AddPrescriptionToAppointment(int appointmentId, string prescription)
 		{
 			var appointment = context.Appointments.FirstOrDefault(a => a.Id == appointmentId);
-			if (appointment != null)
+
+			Status DoneStatus = context.Statuses.FirstOrDefault(a => a.Id == 14);
+
+			if (DoneStatus != null && appointment != null)
 			{
 				appointment.Prescription = prescription;
+				appointment.StatusId = DoneStatus.Id;
 				context.SaveChanges();
+			}
+		}
+
+		public void MarkPatientAsNoShow(int appointmentId)
+		{
+			var appointment = context.Appointments.FirstOrDefault(a => a.Id == appointmentId && a.Status.Id != 17 &&
+			!(a.Status.Id == 14 || a.Status.Id == 16));
+
+			if (appointment != null && appointment.Date.AddMinutes(10) < DateTime.Now)
+			{
+				Status missedStatus = context.Statuses.FirstOrDefault(s => s.Id == 17);
+
+				if (missedStatus != null)
+				{
+					appointment.Status = missedStatus;
+					context.SaveChanges();
+				}
+			}
+			else 
+			{
+				throw new KeyNotFoundException("Randevu bulunamadı veya Randevuyu hasta gelmedi olarak isaretleme yetkiniz yok!");
 			}
 		}
 

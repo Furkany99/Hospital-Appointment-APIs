@@ -305,5 +305,12 @@ namespace WebAPI.Controllers
 			_doctorService.AddPrescriptionToAppointment(appointmentId, prescription);
 			return Ok("Reçete başarıyla eklendi.");
 		}
+
+		[HttpPost("{appointmentId}/mark-as-no-show")]
+		public IActionResult MarkAsNoShow(int appointmentId)
+		{
+			_doctorService.MarkPatientAsNoShow(appointmentId);
+			return Ok("Randevu 'Hasta Gelmedi' olarak işaretlendi.");	
+		}
 	}
 }

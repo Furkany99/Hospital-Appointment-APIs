@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Common.Dto;
+using Common.Models;
 using Common.Models.RequestModels.Patient;
 using DataAccess.Contexts;
 using DataAccess.Entities;
@@ -90,7 +91,7 @@ namespace Services
 			Appointment appointment = _mapper.Map<Appointment>(appointmentDto);
 			Status status = _mapper.Map<Status>(appointmentDto);
 
-			Status defaultStatus = _context.Statuses.FirstOrDefault(s => s.Name == "Beklemede");
+			Status defaultStatus = _context.Statuses.FirstOrDefault(s => s.Id == 15);
 
 			DateTime now = DateTime.Now;
 
@@ -135,12 +136,28 @@ namespace Services
 
 		public void DeleteAppointment(int id)
 		{
-			var appoinment = _context.Appointments.Find(id);
+			var appointment = _context.Appointments.FirstOrDefault(a => a.Id == id);
 
-			if (appoinment != null)
+			Status cancelledStatus = _context.Statuses.FirstOrDefault(a => a.Id == 16);
+			Status completedStatus = _context.Statuses.FirstOrDefault(s => s.Id == 14);
+
+			if (appointment != null && cancelledStatus != null && completedStatus != null)
 			{
-				_context.Appointments.Remove(appoinment);
-				_context.SaveChanges();
+				if (appointment.StatusId == completedStatus.Id)
+				{
+					throw new InvalidOperationException("Tamamlanan bir randevuyu iptal edemezsiniz.");
+				}
+
+				if (appointment.Date < DateTime.Today)
+				{
+					throw new InvalidOperationException("Geçmiş bir randevuyu iptal edemezsiniz.");
+				}
+				else 
+				{
+					appointment.StatusId = cancelledStatus.Id;
+					_context.SaveChanges();
+				}
+					
 			}
 		}
 
@@ -186,59 +203,21 @@ namespace Services
 			return false; // Belirtilen tarih doktorun rutin günleri arasında değilse
 		}
 
-		public List<AppointmentDto> GetPatientAppointments(int patientId, int statusId, int doctorId, int departmentId, DateTime? startTime = null, DateTime? endTime = null)
+		public List<AppointmentDto> GetPatientAppointments(int patientId, AppointmentQueryParameter queryParameter)
 		{
-
-			var appointmentsQuery = _context.Appointments
-				.Include(a => a.Status)
-				.Include(x => x.AppointmentTimes)
-				.Where(a => a.PatientId == patientId);
-
 			DateTime today = DateTime.Today;
 
-			var pendingStatus = _context.Statuses.FirstOrDefault(s => s.Name == "Beklemede");
-			var completedStatus = _context.Statuses.FirstOrDefault(s => s.Name == "Tamamlandi");
-			var cancelledStatus = _context.Statuses.FirstOrDefault(s => s.Name == "Iptal edildi");
+			var appointmentsQuery = _context.Appointments
+			.Include(a => a.Status)
+			.Include(a => a.AppointmentTimes)
+			.Where(a => a.PatientId == patientId &&
+				a.Status.Id == queryParameter.StatusId &&
+				a.DocId == queryParameter.DoctorId &&
+				a.Department.Id == queryParameter.DepartmentId &&
+				!queryParameter.startDate.HasValue || !queryParameter.endDate.HasValue || (a.Date >= queryParameter.startDate && a.Date <= queryParameter.endDate) &&
+				queryParameter.startDate.HasValue && queryParameter.endDate.HasValue || a.Date >= today).ToList();
 
-			
-			if (statusId != 0)
-			{
-				appointmentsQuery = appointmentsQuery.Where(a => a.Status.Id == statusId);
-			}
-
-			if (doctorId != 0)
-			{
-				appointmentsQuery = appointmentsQuery.Where(a => a.DocId == doctorId);
-			}
-
-			if (departmentId != 0)
-			{
-				appointmentsQuery = appointmentsQuery.Where(a => a.Department.Id == departmentId);
-			}
-
-			if (startTime.HasValue && endTime.HasValue)
-			{
-				appointmentsQuery = appointmentsQuery.Where(a => a.Date >= startTime && a.Date <= endTime);
-			}
-			else
-			{
-				appointmentsQuery = appointmentsQuery.Where(a => a.Date >= today); // Sadece gelecekteki randevuları getir
-			}
-
-			var appointments = appointmentsQuery.ToList();
-
-			var pastAppointments = _context.Appointments
-			.Where(a => a.Date < today && a.Status != completedStatus && a.Status != cancelledStatus)
-			.ToList();
-
-			foreach (var appointment in pastAppointments)
-			{
-				appointment.Status = appointment.Status.Name == pendingStatus.Name ? completedStatus : cancelledStatus;
-			}
-
-			_context.SaveChanges();
-
-			var appointmentList = appointments.Select(appointment => _mapper.Map<AppointmentDto>(appointment)).ToList();
+			var appointmentList = appointmentsQuery.Select(appointment => _mapper.Map<AppointmentDto>(appointment)).ToList();
 
 			return appointmentList;
 		}

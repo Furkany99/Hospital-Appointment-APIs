@@ -2,11 +2,12 @@
 {
 	public class DateInfoDto
 	{
-		public int isOneTime { get; set; }
 
 		public DayOfWeek DayOfWeek { get; set; }
 
 		public bool IsOnLeave { get; set; }
+
+		public bool IsAvailable { get; set; }
 
 		public DateOnly Day { get; set; }
 

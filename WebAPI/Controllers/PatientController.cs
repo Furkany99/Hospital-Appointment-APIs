@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Common.Dto;
+using Common.Models;
 using Common.Models.RequestModels.Appointment;
 using Common.Models.ResponseModels.Appointment;
 using Microsoft.AspNetCore.Mvc;
@@ -44,9 +45,9 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpGet("Appointments/{patientId}")]
-		public List<AppointmentListResponseModel> GetAppointments(int patientId, int statusId, int doctorId, int departmentId, DateTime? startTime = null, DateTime? endTime = null)
+		public List<AppointmentListResponseModel> GetAppointments(int patientId, [FromQuery] AppointmentQueryParameter queryParameter)
 		{
-			var appointments = _patientService.GetPatientAppointments(patientId, statusId, doctorId, departmentId, startTime, endTime);
+			var appointments = _patientService.GetPatientAppointments(patientId, queryParameter);
 			var appointmentResponseList = appointments.Select(appointmentDto => _mapper.Map<AppointmentResponseModel>(appointmentDto)).ToList();
 
 			var appointmentListResponse = new AppointmentListResponseModel
