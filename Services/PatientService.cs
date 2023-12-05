@@ -4,6 +4,7 @@ using Common.Models.RequestModels.Patient;
 using DataAccess.Contexts;
 using DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace Services
 {
@@ -119,7 +120,7 @@ namespace Services
 				throw new InvalidOperationException("Varsayılan statü bulunamadı!");
 			}
 
-			bool isDoctorAvailable = IsDoctorAvailableForAppointment(appointmentDto.DocId, appointmentDto.Date, appointmentDto.appointmentTimes.Select(s => s.StartTime).First(), appointmentDto.appointmentTimes.Select(s => s.EndTime).First());
+			bool isDoctorAvailable = IsDoctorAvailableForAppointment(appointmentDto.DocId, appointmentDto.Date, appointmentDto.appointmentTimes.Select(s => s.StartTime).FirstOrDefault(), appointmentDto.appointmentTimes.Select(s => s.EndTime).FirstOrDefault());
 
 			if (!isDoctorAvailable)
 			{
@@ -147,9 +148,10 @@ namespace Services
 		{
 			if (date < DateOnly.FromDateTime(DateTime.Today))
 			{
-				// Geçmiş bir tarih için randevu alınamaz
 				return false;
 			}
+
+
 
 			var doctorRoutine = _context.Routines
 				.Include(r => r.TimeBlocks)
@@ -159,22 +161,26 @@ namespace Services
 			{
 				var isWithinTimeBlocks = doctorRoutine.TimeBlocks.Any(tb => startTime.ToTimeSpan() >= tb.StartTime && endTime.ToTimeSpan() <= tb.EndTime);
 
+
 				if (isWithinTimeBlocks)
 				{
-					// Doktorun rutin saatleri içinde ise, randevu alabilir
-					return true;
+					var hasAppointment = _context.Appointments.Any(a =>
+					a.DocId == doctorId &&
+					a.Date == new DateTime(date.Year, date.Month, date.Day) &&
+					a.AppointmentTimes.Any(at =>
+					(
+						at.StartTime <= startTime.ToTimeSpan() && at.EndTime >= startTime.ToTimeSpan() ||
+						at.StartTime <= endTime.ToTimeSpan() && at.EndTime >= endTime.ToTimeSpan() ||
+						at.StartTime >= startTime.ToTimeSpan() && at.EndTime <= endTime.ToTimeSpan()
+					)
+				)
+			);
+
+					return !hasAppointment;
 				}
 
-				var hasAppointment = _context.Appointments.Any(a =>
-				a.DocId == doctorId &&
-				DateOnly.FromDateTime(a.Date) == date &&
-				a.AppointmentTimes.Any(at =>
-				(
-					(startTime.ToTimeSpan() >= at.StartTime && startTime.ToTimeSpan() < at.EndTime) ||
-					(endTime.ToTimeSpan() > at.StartTime && endTime.ToTimeSpan() <= at.EndTime) ||
-					(startTime.ToTimeSpan() <= at.StartTime && endTime.ToTimeSpan() >= at.EndTime))));
+				return false;
 
-				return !hasAppointment;
 			}
 
 			return false; // Belirtilen tarih doktorun rutin günleri arasında değilse

@@ -298,7 +298,7 @@ namespace WebAPI.Controllers
 			return responseModel;
 		}
 
-		[Authorize(Roles = "Doctor")]
+		//[Authorize(Roles = "Doctor")]
 		[HttpPost("{appointmentId}/prescription")]
 		public IActionResult AddPrescriptionToAppointment(int appointmentId, [FromBody] string prescription)
 		{
