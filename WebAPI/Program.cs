@@ -16,6 +16,7 @@ builder.Services.AddTransient<PatientService>();
 builder.Services.AddTransient<DoctorService>();
 builder.Services.AddTransient<DepartmentService>();
 builder.Services.AddTransient<TitleService>();
+builder.Services.AddTransient<AppointmentService>();
 builder.Services.AddAutoMapper(typeof(PatientMapper).Assembly);
 builder.Services.AddAutoMapper(typeof(DoctorMapper).Assembly);
 builder.Services.AddAutoMapper(typeof(DepartmentMapper).Assembly);

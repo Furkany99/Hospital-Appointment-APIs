@@ -4,11 +4,10 @@ using Common.Models.RequestModels.Doctor;
 using DataAccess.Contexts;
 using DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 
 namespace Services
 {
-    public class DoctorService
+	public class DoctorService
 	{
 		private readonly HospitalAppointmentContext context;
 		private readonly IMapper _mapper;
@@ -418,7 +417,6 @@ namespace Services
 			{
 				var existingRoutineInfo = routineAndOneTimeInfos.FirstOrDefault(r =>
 				r.Day.Equals(ot.Day));
-			
 
 				if (existingRoutineInfo == null)
 				{
@@ -436,59 +434,32 @@ namespace Services
 				}
 			}
 
-			var doctorAppointments = context.Appointments
-		.Where(a => a.DocId == doctorId && new DateTime(startDate.Value.Year,startDate.Value.Month,startDate.Value.Day) <= a.Date.Date && a.Date.Date <= new DateTime(endDate.Value.Year,endDate.Value.Month,endDate.Value.Day))
-		.SelectMany(a => a.AppointmentTimes.Select(at => new { Date = a.Date.Date, StartTime = at.StartTime, EndTime = at.EndTime }))
-		.ToList();
-
-			foreach (var info in routineAndOneTimeInfos)
-			{
-				info.IsAvailable = !doctorAppointments.Any(appointment =>
-					DateOnly.FromDateTime(appointment.Date) == info.Day &&
-					appointment.StartTime <= info.dateInfoTimeDtos.Min(dto => dto.StartTime) &&
-					appointment.EndTime >= info.dateInfoTimeDtos.Max(dto => dto.EndTime)
-				);
-			}
-
-			var filteredInfos = routineAndOneTimeInfos.Where(info => info.IsAvailable).ToList();
-
-			return filteredInfos.OrderBy(info => info.Day).ToList();
+			return routineAndOneTimeInfos.OrderBy(info => info.Day).ToList();
 		}
 
 		public void AddPrescriptionToAppointment(int appointmentId, string prescription)
 		{
-			var appointment = context.Appointments.FirstOrDefault(a => a.Id == appointmentId);
+			var appointment = context.Appointments.Include(a => a.Status).FirstOrDefault(a => a.Id == appointmentId && (a.Status.Id == 14));
 
-			Status DoneStatus = context.Statuses.FirstOrDefault(a => a.Id == 14);
-
-			if (DoneStatus != null && appointment != null)
-			{
-				appointment.Prescription = prescription;
-				appointment.StatusId = DoneStatus.Id;
-				context.SaveChanges();
-			}
+			appointment.Prescription = prescription;
+			appointment.StatusId = 14;
+			context.SaveChanges();
 		}
 
 		public void MarkPatientAsNoShow(int appointmentId)
 		{
-			var appointment = context.Appointments.FirstOrDefault(a => a.Id == appointmentId && a.Status.Id != 17 &&
-			!(a.Status.Id == 14 || a.Status.Id == 16));
+			var appointment = context.Appointments.FirstOrDefault(a => a.Id == appointmentId && a.StatusId != 17 &&
+			!(a.StatusId == 14 || a.StatusId == 16));
 
-			if (appointment != null && appointment.Date.AddMinutes(10) < DateTime.Now)
+			if (appointment != null && DateTime.Now > appointment.Date.AddMinutes(10))
 			{
-				Status missedStatus = context.Statuses.FirstOrDefault(s => s.Id == 17);
-
-				if (missedStatus != null)
-				{
-					appointment.Status = missedStatus;
-					context.SaveChanges();
-				}
+				appointment.StatusId = 17;
+				context.SaveChanges();
 			}
-			else 
+			else
 			{
-				throw new KeyNotFoundException("Randevu bulunamadı veya Randevuyu hasta gelmedi olarak isaretleme yetkiniz yok!");
+				throw new InvalidOperationException("Randevu bulunamadi veya Randevu süresi dolmadan işaretleme yapamazsınız!");
 			}
 		}
-
 	}
 }

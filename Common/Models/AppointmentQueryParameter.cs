@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace Common.Models
 {
 	public class AppointmentQueryParameter
 	{
+		public int PatientId { get; set; }
 		public int StatusId { get; set; }
 		public int DoctorId { get; set; }
 		public int DepartmentId { get; set; }
