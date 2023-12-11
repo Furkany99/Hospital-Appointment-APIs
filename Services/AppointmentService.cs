@@ -148,55 +148,79 @@ namespace Services
 			return appointmentList;
 		}
 
-		public List<AppointmentAvailabilityDto> GetDoctorAppointmentsAndSchedules(int departmentId ,DateOnly? startDate, DateOnly? endDate)
+		public List<AppointmentAvailabilityDto> GetDoctorAppointmentsAndSchedules(int departmentId, DateOnly? startDate, DateOnly? endDate)
 		{
 			var doctors = _context.Doctors
-			.Include(a => a.Departments)
-			.Where(d => d.Departments.Any(a => a.Id == departmentId))
-			.ToList();
+				.Include(a => a.Departments)
+				.Where(d => d.Departments.Any(a => a.Id == departmentId))
+				.ToList();
 
-			var doctorAppointmentsAndSchedules = new List<AppointmentAvailabilityDto>();
-
-			foreach (var doctor in doctors)
+			var doctorAppointmentsAndSchedules = doctors.Select(doctor =>
 			{
 				var routinesAndOneTimes = _doctorService.GetDoctorRoutinesAndOneTimes(doctor.Id, startDate, endDate);
 				var hasAppointments = HasDoctorAppointments(doctor.Id, startDate, endDate);
-				
 
-				var doctorAvailability = new AppointmentAvailabilityDto
+				return new AppointmentAvailabilityDto
 				{
 					DoctorId = doctor.Id,
-					RoutinesAndOneTimes = routinesAndOneTimes,
-					Appointments = hasAppointments ? GetPatientAppointments(new AppointmentQueryParameter
-					{
-						StatusId = 15,
-						DoctorId = doctor.Id,
-						DepartmentId = departmentId,
-						startDate = new DateTime(startDate.Value.Year, startDate.Value.Month, startDate.Value.Day),
-						endDate = new DateTime(endDate.Value.Year, endDate.Value.Month, endDate.Value.Day),
-					}).Select(appointment => new AppointmentSimpleResponseBody
-					{
-						AppointmentId = appointment.Id,
-						AppointmentDate = appointment.Date,
-						TimeSlots = appointment.appointmentTimes
-						.Select(a => new AppointmentResponseTimeModel
+					RoutinesAndOneTimes = routinesAndOneTimes
+						.SelectMany(routine =>
 						{
-							StartTime = a.StartTime,
-							EndTime = a.EndTime
+							var slots = new List<DateInfoTimeDto>();
+							foreach (var dateInfo in routine.dateInfoTimeDtos)
+							{
+								GenerateTimeSlots(dateInfo.StartTime, dateInfo.EndTime, slots);
+							}
+							return slots.Select(slot => new DateInfoDto
+							{
+								DayOfWeek = routine.DayOfWeek,
+								IsOnLeave = routine.IsOnLeave,
+								Day = routine.Day,
+								dateInfoTimeDtos = new List<DateInfoTimeDto> { slot }
+							});
 						})
-						.ToList()
-					}).ToList() : new List<AppointmentSimpleResponseBody>()
+						.ToList(),
+					Appointments = hasAppointments
+						? GetPatientAppointments(new AppointmentQueryParameter
+						{
+							StatusId = 15,
+							DoctorId = doctor.Id,
+							DepartmentId = departmentId,
+							startDate = new DateTime(startDate.Value.Year, startDate.Value.Month, startDate.Value.Day),
+							endDate = new DateTime(endDate.Value.Year, endDate.Value.Month, endDate.Value.Day),
+						})
+							.Select(appointment => new AppointmentSimpleResponseBody
+							{
+								AppointmentId = appointment.Id,
+								AppointmentDate = appointment.Date,
+								TimeSlots = appointment.appointmentTimes
+									.Select(a => new AppointmentResponseTimeModel
+									{
+										StartTime = a.StartTime,
+										EndTime = a.EndTime
+									})
+									.ToList()
+							})
+							.ToList()
+						: new List<AppointmentSimpleResponseBody>()
 				};
-
-				doctorAppointmentsAndSchedules.Add(doctorAvailability);
-			}
+			}).ToList();
 
 			return doctorAppointmentsAndSchedules;
 		}
 
+
 		private bool HasDoctorAppointments(int doctorId, DateOnly? startDate, DateOnly? endDate)
 		{
-			
+			DateTime today = DateTime.Today;
+			DateTime endDay = today.AddDays(5);
+
+			if (!startDate.HasValue || !endDate.HasValue)
+			{
+				startDate = DateOnly.FromDateTime(today);
+				endDate = DateOnly.FromDateTime(endDay.Date);
+			}
+
 			var appointments = _context.Appointments
 				.Where(a => a.DocId == doctorId &&
 							a.Date >= new DateTime(startDate.Value.Year,startDate.Value.Month,startDate.Value.Day) && 
@@ -204,6 +228,19 @@ namespace Services
 				.ToList();
 
 			return appointments.Any();
+		}
+
+		private void GenerateTimeSlots(TimeSpan startTime, TimeSpan endTime, List<DateInfoTimeDto> slots)
+		{
+			while (startTime < endTime)
+			{
+				slots.Add(new DateInfoTimeDto
+				{
+					StartTime = startTime,
+					EndTime = startTime.Add(TimeSpan.FromMinutes(30))
+				});
+				startTime = startTime.Add(TimeSpan.FromMinutes(30));
+			}
 		}
 
 	}
