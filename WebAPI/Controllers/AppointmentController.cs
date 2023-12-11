@@ -59,7 +59,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpGet("DoctorAppointmentsAndSchedules")]
-		public ActionResult<List<AppointmentAvailabilityDto>> GetDoctorAppointmentsAndSchedules(int departmentId, DateOnly? startDate, DateOnly? endDate)
+		public ActionResult<List<AppointmentAvailabilityDto>> GetDoctorAppointmentsAndSchedules(int departmentId , DateOnly? startDate, DateOnly? endDate)
 		{
 			var doctorAppointmentsAndSchedules = _appointmentService.GetDoctorAppointmentsAndSchedules(departmentId, startDate, endDate);
 			return doctorAppointmentsAndSchedules;

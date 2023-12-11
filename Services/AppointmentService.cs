@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Common.Dto;
 using Common.Models;
+using Common.Models.ResponseModels.Appointment;
 using DataAccess.Contexts;
 using DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -147,7 +148,7 @@ namespace Services
 			return appointmentList;
 		}
 
-		public List<AppointmentAvailabilityDto> GetDoctorAppointmentsAndSchedules(int departmentId, DateOnly? startDate, DateOnly? endDate)
+		public List<AppointmentAvailabilityDto> GetDoctorAppointmentsAndSchedules(int departmentId ,DateOnly? startDate, DateOnly? endDate)
 		{
 			var doctors = _context.Doctors
 			.Include(a => a.Departments)
@@ -160,6 +161,7 @@ namespace Services
 			{
 				var routinesAndOneTimes = _doctorService.GetDoctorRoutinesAndOneTimes(doctor.Id, startDate, endDate);
 				var hasAppointments = HasDoctorAppointments(doctor.Id, startDate, endDate);
+				
 
 				var doctorAvailability = new AppointmentAvailabilityDto
 				{
@@ -167,13 +169,23 @@ namespace Services
 					RoutinesAndOneTimes = routinesAndOneTimes,
 					Appointments = hasAppointments ? GetPatientAppointments(new AppointmentQueryParameter
 					{
-						PatientId = 2,
 						StatusId = 15,
 						DoctorId = doctor.Id,
 						DepartmentId = departmentId,
 						startDate = new DateTime(startDate.Value.Year, startDate.Value.Month, startDate.Value.Day),
 						endDate = new DateTime(endDate.Value.Year, endDate.Value.Month, endDate.Value.Day),
-					}) : new List<AppointmentDto>() 
+					}).Select(appointment => new AppointmentSimpleResponseBody
+					{
+						AppointmentId = appointment.Id,
+						AppointmentDate = appointment.Date,
+						TimeSlots = appointment.appointmentTimes
+						.Select(a => new AppointmentResponseTimeModel
+						{
+							StartTime = a.StartTime,
+							EndTime = a.EndTime
+						})
+						.ToList()
+					}).ToList() : new List<AppointmentSimpleResponseBody>()
 				};
 
 				doctorAppointmentsAndSchedules.Add(doctorAvailability);
