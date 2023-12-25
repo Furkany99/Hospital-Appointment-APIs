@@ -8,6 +8,10 @@ namespace Common.Dto
 {
 	public class DoctorDto
 	{
+		public DoctorDto() 
+		{
+			RoleId = 2;
+		}
 		public int Id { get; set; }
 
 		public string Name { get; set; } = string.Empty;
@@ -19,6 +23,8 @@ namespace Common.Dto
 		public string? Email { get; set; }
 
 		public string Password { get; set; } = string.Empty;
+
+		public int RoleId { get; private set; }
 
 		public int TitleId { get; set; }
 

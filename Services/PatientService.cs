@@ -20,10 +20,12 @@ namespace Services
 			_mapper = mapper;
 		}
 
-		public void CreatePatient(PatientDto patientDto)
+		public void CreatePatient(PatientDto patientDto, string firebaseUserId)
 		{
 			Patient patient = _mapper.Map<Patient>(patientDto);
 			Account account = _mapper.Map<Account>(patientDto);
+
+			account.FirebaseUid = firebaseUserId;
 
 			patient.Account = account;
 

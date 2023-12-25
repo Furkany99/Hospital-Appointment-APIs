@@ -34,6 +34,8 @@ public partial class HospitalAppointmentContext : DbContext
 
     public virtual DbSet<Patient> Patients { get; set; }
 
+    public virtual DbSet<Role> Roles { get; set; }
+
     public virtual DbSet<Routine> Routines { get; set; }
 
     public virtual DbSet<Status> Statuses { get; set; }
@@ -44,7 +46,7 @@ public partial class HospitalAppointmentContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=DESKTOP-FI8FV2M;Database=Hospital_appointment;Trusted_Connection=True;TrustServerCertificate=true");
+        => optionsBuilder.UseSqlServer("Server=DESKTOP-B9IE91I;Database=Hospital_appointment;Trusted_Connection=True;TrustServerCertificate=true");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -56,12 +58,21 @@ public partial class HospitalAppointmentContext : DbContext
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.Email).HasMaxLength(50);
+            entity.Property(e => e.FirebaseUid)
+                .HasMaxLength(500)
+                .IsUnicode(false)
+                .HasColumnName("FirebaseUID");
             entity.Property(e => e.Password)
                 .HasMaxLength(10)
                 .IsFixedLength();
             entity.Property(e => e.UserName)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+
+            entity.HasOne(d => d.Role).WithMany(p => p.Accounts)
+                .HasForeignKey(d => d.RoleId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Account_Role");
         });
 
         modelBuilder.Entity<Admin>(entity =>
@@ -197,7 +208,6 @@ public partial class HospitalAppointmentContext : DbContext
 
             entity.HasOne(d => d.Doctor).WithMany(p => p.OneTimes)
                 .HasForeignKey(d => d.DoctorId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_OneTime_Doctor");
         });
 
@@ -210,7 +220,6 @@ public partial class HospitalAppointmentContext : DbContext
 
             entity.HasOne(d => d.OneTime).WithMany(p => p.OneTimeTimeBlocks)
                 .HasForeignKey(d => d.OneTimeId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_OneTimeTimeBlock_OneTime");
         });
 
@@ -237,6 +246,16 @@ public partial class HospitalAppointmentContext : DbContext
                 .HasConstraintName("FK_Patient_Account");
         });
 
+        modelBuilder.Entity<Role>(entity =>
+        {
+            entity.ToTable("Role");
+
+            entity.Property(e => e.Id).HasColumnName("ID");
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+        });
+
         modelBuilder.Entity<Routine>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK_Schedules");
@@ -248,7 +267,6 @@ public partial class HospitalAppointmentContext : DbContext
 
             entity.HasOne(d => d.Doctor).WithMany(p => p.Routines)
                 .HasForeignKey(d => d.DoctorId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Routine_Doctor");
         });
 
@@ -271,7 +289,6 @@ public partial class HospitalAppointmentContext : DbContext
 
             entity.HasOne(d => d.Routine).WithMany(p => p.TimeBlocks)
                 .HasForeignKey(d => d.RoutineId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TimeBlock_Routine");
         });
 

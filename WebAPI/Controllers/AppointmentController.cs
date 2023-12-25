@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using Common.Dto;
+//using Common.Helpers;
 using Common.Models;
 using Common.Models.RequestModels.Appointment;
 using Common.Models.ResponseModels.Appointment;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services;
 
@@ -21,7 +23,9 @@ namespace WebAPI.Controllers
 			_mapper = mapper;
 		}
 
+		
 		[HttpPost("Appointments")]
+		[Authorize(Roles = "Admin,Patient")]
 		public IActionResult Appointment(AppointmentRequestModel requestModel)
 		{
 			try
@@ -37,6 +41,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpDelete("Appointments")]
+		[Authorize(Roles = "Admin,Patient")]
 		public IActionResult Delete(int id)
 		{
 			_appointmentService.DeleteAppointment(id);
@@ -44,6 +49,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpGet("Appointments")]
+		[Authorize(Roles = "Admin,Doctor,Patient")]
 		public List<AppointmentListResponseModel> GetAppointments([FromQuery] AppointmentQueryParameter queryParameter)
 		{
 			var appointments = _appointmentService.GetPatientAppointments(queryParameter);
@@ -59,6 +65,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpGet("DoctorAppointmentsAndSchedules")]
+		[Authorize(Roles = "Admin,Patient")]
 		public ActionResult<List<AppointmentAvailabilityDto>> GetDoctorAppointmentsAndSchedules(int departmentId , DateOnly? startDate, DateOnly? endDate)
 		{
 			var doctorAppointmentsAndSchedules = _appointmentService.GetDoctorAppointmentsAndSchedules(departmentId, startDate, endDate);

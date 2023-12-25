@@ -5,6 +5,7 @@ using Common.Models.RequestModels.Patient;
 using Common.Models.ResponseModels.Department;
 using Common.Models.ResponseModels.Patient;
 using DataAccess.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -28,76 +29,30 @@ namespace WebAPI.Controllers
 			_departmentService = departmentService;
 		}
 
+		////[Authorize(Roles = "Admin")]
+		//[HttpPost("Patients")]
+		//public IActionResult CreatePatient(PatientCreateRequestModel patientCreate)
+		//{
+		//	try
+		//	{
+		//		var patients = _mapper.Map<PatientDto>(patientCreate);
+		//		_patientService.CreatePatient(patients);
+		//		return Ok();
+		//	}
+		//	catch 
+		//	{
+		//		return BadRequest();
+		//	}
 
-		[HttpPost("Patients")]
-		public IActionResult CreatePatient(PatientCreateRequestModel patientCreate)
-		{
-			try
-			{
-				var patients = _mapper.Map<PatientDto>(patientCreate);
-				_patientService.CreatePatient(patients);
-				return Ok();
-			}
-			catch 
-			{
-				return BadRequest();
-			}
+		//}
 
-		}
-
-		[HttpGet("Patients")]
-		public List<PatientListResponseModel> GetPatients()
-		{
-			var patients = _patientService.GetPatients();
-			var patientResponseList = patients.Select(patientDto => _mapper.Map<PatientResponseModel>(patientDto)).ToList();
-
-			var patientListResponse = new PatientListResponseModel
-			{
-				Count = patientResponseList.Count,
-				patientResponseModels = patientResponseList
-			};
-
-			return new List<PatientListResponseModel> { patientListResponse };
-
-
-		}
-
-		[HttpGet("Patients/{id}")]
-		public PatientResponseModel GetPatientByID(int id)
-		{
-			var patientDto = _patientService.GetPatientById(id);
-			var patientResponseModel = _mapper.Map<PatientResponseModel>(patientDto);
-			return patientResponseModel;
-		}
 		
-		[HttpPut("Patients/{id}")]
-		public PatientUpdateRequestModel UpdatePatient(int id,PatientUpdateRequestModel patientUpdate)
-		{
-			var updatedPatient = _patientService.Update(id, patientUpdate);
-			var PatientRequestModel = _mapper.Map<PatientUpdateRequestModel>(updatedPatient);
-			if (updatedPatient != null)
-			{
-				return PatientRequestModel; 
-			}
-			else
-			{
-				return null; 
-			}
-
-		}
-
-		[HttpDelete("Patient/{id}")]
-		public IActionResult DeletePatient(int id)
-		{
-			_patientService.Delete(id);
-			return Ok();
-
-		}
 
 
 		
 
 		[HttpPost("Department")]
+		[Authorize(Roles = "Admin")]
 		public IActionResult CreateDepartment(DepartmentRequestModel departmentRequest)
 		{
 			try
@@ -116,6 +71,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpGet("Departments")]
+		[Authorize(Roles = "Admin,Doctor,Patient")]
 		public List<DepartmentListResponseModel> GetDepartments()
 		{
 			var departments = _departmentService.GetDepartments();
@@ -134,6 +90,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpPut("Department/{id}")]
+		[Authorize(Roles = "Admin")]
 		public DepartmentUpdateRequestModel UpdateDepartment(int id, DepartmentUpdateRequestModel departmentUpdate)
 		{
 			var updatedDepartment = _departmentService.UpdateDepartment(id, departmentUpdate);
@@ -154,6 +111,7 @@ namespace WebAPI.Controllers
 
 
 		[HttpDelete("Department/{id}")]
+		[Authorize(Roles = "Admin")]
 		public IActionResult DeleteDepartment(int id)
 		{
 			try 

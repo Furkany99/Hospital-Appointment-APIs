@@ -28,6 +28,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpPost("Doctors")]
+		[Authorize(Roles = "Admin,Doctor")]
 		public IActionResult CreateDoctor(DoctorRequestModel doctorRequest)
 		{
 			try
@@ -43,6 +44,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpGet("Doctors")]
+		[Authorize(Roles = "Admin,Doctor,Patient")]
 		public List<DoctorListResponseModel> GetDoctors()
 		{
 			var doctors = _doctorService.GetDoctors();
@@ -58,6 +60,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpGet("{id}")]
+		[Authorize(Roles = "Admin,Doctor,Patient")]
 		public DoctorResponseModel GetDoctorsByID(int id)
 		{
 			var doctorDto = _doctorService.GetDoctorById(id);
@@ -66,7 +69,8 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpPut("{id}")]
-		public DoctorUpdateRequestModel UpdatePatient(int id, DoctorUpdateRequestModel doctorUpdate)
+		[Authorize(Roles = "Admin,Doctor")]
+		public DoctorUpdateRequestModel UpdateDoctor(int id, DoctorUpdateRequestModel doctorUpdate)
 		{
 			var updatedDoctor = _doctorService.UpdateDoctor(id, doctorUpdate);
 			var doctorRequestModel = _mapper.Map<DoctorUpdateRequestModel>(updatedDoctor);
@@ -81,6 +85,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpDelete("{id}")]
+		[Authorize(Roles = "Admin")]
 		public IActionResult DeleteDoctor(int id)
 		{
 			_doctorService.DeleteDoctor(id);
@@ -88,6 +93,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpPut("{id}/Departments")]
+		[Authorize(Roles = "Admin")]
 		public DoctorDepartmentUpdateRequest UpdateDoctorDepartment(int id, DoctorDepartmentUpdateRequest departmentUpdateRequest)
 		{
 			try
@@ -107,6 +113,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpPut("{id}/Titles")]
+		[Authorize(Roles = "Admin")]
 		public DoctorTitleUpdateRequest UpdateDoctorTitle(int id, DoctorTitleUpdateRequest doctorTitleUpdate)
 		{
 			try
@@ -123,6 +130,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpPost("{doctorId}/routines")]
+		[Authorize(Roles = "Admin")]
 		public IActionResult CreateRoutineForDoctor(int doctorId, RoutineRequestModel routineRequest)
 		{
 			try
@@ -147,6 +155,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpGet("{doctorId}/routines")]
+		[Authorize(Roles = "Admin,Doctor,Patient")]
 		public RoutineListResponseModel GetDoctorRoutines(int doctorId)
 		{
 			var doctorRoutines = _doctorService.GetDoctorRoutines(doctorId);
@@ -162,6 +171,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpPut("{doctorId}/routines")]
+		[Authorize(Roles = "Admin")]
 		public RoutineUpdateRequestModel UpdateRoutineAndTimeBlocks(int doctorId, int routineId, RoutineUpdateRequestModel routineUpdateRequest)
 		{
 			try
@@ -179,6 +189,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpDelete("{doctorId}/routines")]
+		[Authorize(Roles = "Admin")]
 		public IActionResult DeleteDoctorRoutine(int doctorId, int routineID)
 		{
 			try
@@ -193,6 +204,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpPost("{doctorId}/Onetime")]
+		[Authorize(Roles = "Admin,Doctor")]
 		public IActionResult CreateOneTime(int doctorId, OneTimeRequestModel requestModel)
 		{
 			try
@@ -216,6 +228,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpGet("{doctorId}/onetimes")]
+		[Authorize(Roles = "Admin,Doctor,Patient")]
 		public OneTimeListResponseModel GetDoctorOneTimes(int doctorId, DateOnly? startDate = null, DateOnly? endDate = null)
 		{
 			var responseModel = new OneTimeListResponseModel();
@@ -246,6 +259,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpPut("{doctorId}/onetimes/{oneTimeId}")]
+		[Authorize(Roles = "Admin,Doctor")]
 		public OneTimeUpdateRequest UpdateOneTime(int doctorId, int oneTimeId, OneTimeUpdateRequest oneTimeUpdate)
 		{
 			try
@@ -263,6 +277,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpDelete("{doctorId}/onetimes/{oneTimeId}")]
+		[Authorize(Roles = "Admin,Doctor")]
 		public IActionResult DeleteOneTime(int doctorId, int oneTimeId)
 		{
 			try
@@ -277,6 +292,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpGet("{doctorId}/routines-and-onetimes")]
+		[Authorize(Roles = "Admin,Doctor,Patient")]
 		public DoctorRoutinesAndOneTimesResponseModel GetDoctorRoutinesAndOneTimes(int doctorId, DateOnly? startDate, DateOnly? endDate)
 		{
 
@@ -298,8 +314,8 @@ namespace WebAPI.Controllers
 			return responseModel;
 		}
 
-		//[Authorize(Roles = "Doctor")]
 		[HttpPost("{appointmentId}/prescription")]
+		[Authorize(Roles = "Admin,Doctor")]
 		public IActionResult AddPrescriptionToAppointment(int appointmentId, [FromBody] string prescription)
 		{
 			_doctorService.AddPrescriptionToAppointment(appointmentId, prescription);
@@ -307,6 +323,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpPost("{appointmentId}/mark-as-no-show")]
+		[Authorize(Roles = "Admin,Doctor")]
 		public IActionResult MarkAsNoShow(int appointmentId)
 		{
 			_doctorService.MarkPatientAsNoShow(appointmentId);

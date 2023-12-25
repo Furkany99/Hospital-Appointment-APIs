@@ -2,6 +2,7 @@
 using Common.Dto;
 using Common.Models.RequestModels.Title;
 using Common.Models.ResponseModels.Title;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services;
 
@@ -21,6 +22,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpPost()]
+		[Authorize(Roles = "Admin")]
 		public IActionResult CreateTitle(TitleRequestModel titleRequest) 
 		{
 			try
@@ -36,6 +38,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpGet()]
+		[Authorize(Roles = "Admin")]
 		public List<TitleListResponseModel> GetTitles()
 		{
 			var titles = _titleService.GetTitles();
@@ -54,6 +57,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpGet("{id}")]
+		[Authorize(Roles = "Admin")]
 		public TitleResponseModel GetTitlesByID(int id)
 		{
 			var titleDto = _titleService.GetTitleById(id);
@@ -62,6 +66,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpPut()]
+		[Authorize(Roles = "Admin")]
 		public TitleUpdateRequestModel UpdateTitle(int id, TitleUpdateRequestModel titleUpdate)
 		{
 			var updatedTitle = _titleService.UpdateTitle(id, titleUpdate);
@@ -78,6 +83,7 @@ namespace WebAPI.Controllers
 		}
 
 		[HttpDelete()]
+		[Authorize(Roles = "Admin")]
 		public IActionResult DeleteTitle(int id)
 		{
 			_titleService.DeleteTitle(id);
