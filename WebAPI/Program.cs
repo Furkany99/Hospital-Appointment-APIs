@@ -4,21 +4,20 @@ using Services;
 using Services.Mapping;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
-using Microsoft.Extensions.Options;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-HospitalAppointmentContext context = new();
-var datas = await context.Patients.ToListAsync();
+//HospitalAppointmentContext context = new();
+//var datas = await context.Patients.ToListAsync();
 
 
-
-
+var config = new ConfigurationBuilder().AddJsonFile("appsettings.json",optional: false ,reloadOnChange : true).Build();
+Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(config).CreateLogger();
+builder.Host.UseSerilog((hostingContext, loggerConfiguration) => loggerConfiguration.ReadFrom.Configuration(hostingContext.Configuration));
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -127,6 +126,7 @@ if (app.Environment.IsDevelopment())
 {
 	app.UseSwagger();
 	app.UseSwaggerUI();
+	
 }
 
 

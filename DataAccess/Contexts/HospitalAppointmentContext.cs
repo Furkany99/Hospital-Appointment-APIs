@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-namespace DataAccess.Contexts;
 
+namespace DataAccess.Contexts;
 
 public partial class HospitalAppointmentContext : DbContext
 {
@@ -16,7 +15,6 @@ public partial class HospitalAppointmentContext : DbContext
         : base(options)
     {
     }
-
 
     public virtual DbSet<Account> Accounts { get; set; }
 
@@ -46,18 +44,11 @@ public partial class HospitalAppointmentContext : DbContext
 
     public virtual DbSet<Title> Titles { get; set; }
 
-   
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Server=DESKTOP-B9IE91I;Database=Hospital_appointment;Trusted_Connection=True;TrustServerCertificate=true");
 
-	
-	protected override async void OnConfiguring(DbContextOptionsBuilder optionsBuilder) 
-    {
-		optionsBuilder.UseSqlServer("Server=DESKTOP-B9IE91I;Database=Hospital_appointment;Trusted_Connection=True;TrustServerCertificate=true");
-
-        optionsBuilder.LogTo(Console.WriteLine,LogLevel.Information).EnableSensitiveDataLogging().EnableDetailedErrors();
-	}
-      	
-
-	protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Account>(entity =>
         {
@@ -312,9 +303,6 @@ public partial class HospitalAppointmentContext : DbContext
         });
 
         OnModelCreatingPartial(modelBuilder);
-
-
-        
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

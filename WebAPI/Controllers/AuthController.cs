@@ -4,19 +4,13 @@ using Common.Dto;
 using Common.Models.RequestModels.Patient;
 using Common.Models.ResponseModels.Firebase;
 using DataAccess.Contexts;
-using DataAccess.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
-using FirebaseAdmin;
 using FirebaseAdmin.Auth;
-using Google.Apis.Auth;
 
 namespace WebAPI.Controllers
 {
@@ -30,8 +24,9 @@ namespace WebAPI.Controllers
 		private readonly DoctorService _doctorService;
 		private readonly PatientService _patientService;
 		private readonly IMapper _mapper;
+		private readonly ILogger<AuthController> _logger;
 
-		public AuthController(HospitalAppointmentContext context, IHttpClientFactory httpClientFactory, AuthService authService, DoctorService doctorService, PatientService patientService, IMapper mapper)
+		public AuthController(HospitalAppointmentContext context, IHttpClientFactory httpClientFactory, AuthService authService, DoctorService doctorService, PatientService patientService, IMapper mapper,ILogger<AuthController> logger)
 		{
 			_context = context;
 			_httpClientFactory = httpClientFactory;
@@ -39,13 +34,14 @@ namespace WebAPI.Controllers
 			_doctorService = doctorService;
 			_patientService = patientService;
 			_mapper = mapper;
+			_logger = logger;
 		}
 
 
 		[HttpPost("login")]
 		public async Task<IActionResult> Login(AccountDto accountDto)
 		{
-
+			_logger.LogWarning("Bu bir deneme Log mesajidir!");
 			// Firebase Authentication REST API URL
 			var firebaseAuthUrl = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyCgnYKRl4l8mjgHQSsa_zLCVtPBFE-upr0";
 
@@ -57,7 +53,7 @@ namespace WebAPI.Controllers
 				returnSecureToken = true
 
 			};
-			HttpResponseMessage responses = null;
+			//HttpResponseMessage responses = null;
 
 			// HTTP isteği oluştur
 			using (var client = _httpClientFactory.CreateClient())
@@ -118,8 +114,9 @@ namespace WebAPI.Controllers
 					}
 
 				}
-
-				var errorContent = await responses.Content.ReadAsStringAsync();
+				
+				var errorContent = await response.Content.ReadAsStringAsync();
+				_logger.LogWarning(errorContent);
 				return BadRequest($"Firebase Authentication hatası: {errorContent}");
 
 			}
