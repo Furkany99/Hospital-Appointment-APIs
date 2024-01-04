@@ -11,6 +11,7 @@ using Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using FirebaseAdmin.Auth;
+using static Common.Exceptions.ExceptionHandlingMiddleware;
 
 namespace WebAPI.Controllers
 {
@@ -41,7 +42,6 @@ namespace WebAPI.Controllers
 		[HttpPost("login")]
 		public async Task<IActionResult> Login(AccountDto accountDto)
 		{
-			_logger.LogWarning("Bu bir deneme Log mesajidir!");
 			// Firebase Authentication REST API URL
 			var firebaseAuthUrl = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyCgnYKRl4l8mjgHQSsa_zLCVtPBFE-upr0";
 
@@ -115,9 +115,9 @@ namespace WebAPI.Controllers
 
 				}
 				
-				var errorContent = await response.Content.ReadAsStringAsync();
+				var errorContent = await response.Content.ReadAsStringAsync();			
 				_logger.LogWarning(errorContent);
-				return BadRequest($"Firebase Authentication hatası: {errorContent}");
+				throw new Exception(errorContent);
 
 			}
 

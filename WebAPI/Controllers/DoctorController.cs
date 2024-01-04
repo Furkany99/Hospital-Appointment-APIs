@@ -19,12 +19,13 @@ namespace WebAPI.Controllers
 	{
 		private readonly DoctorService _doctorService;
 		private readonly IMapper _mapper;
+		private readonly ILogger<DoctorController> _logger;
 
-		public DoctorController(DoctorService doctorService, IMapper mapper)
+		public DoctorController(DoctorService doctorService, IMapper mapper, ILogger<DoctorController> logger)
 		{
 			_doctorService = doctorService;
 			_mapper = mapper;
-			
+			_logger = logger;
 		}
 
 		[HttpPost("Doctors")]
@@ -39,6 +40,7 @@ namespace WebAPI.Controllers
 			}
 			catch (Exception ex)
 			{
+				_logger.LogError("Doktor oluşturulamadı: " + ex.Message);
 				return BadRequest("Doktor oluşturulamadı: " + ex.Message);
 			}
 		}
@@ -64,6 +66,11 @@ namespace WebAPI.Controllers
 		public DoctorResponseModel GetDoctorsByID(int id)
 		{
 			var doctorDto = _doctorService.GetDoctorById(id);
+			if(doctorDto == null)
+			{
+				_logger.LogError("No doctor was found for the entered Id!");
+				
+			}
 			var doctorResponseModel = _mapper.Map<DoctorResponseModel>(doctorDto);
 			return doctorResponseModel;
 		}
@@ -74,14 +81,12 @@ namespace WebAPI.Controllers
 		{
 			var updatedDoctor = _doctorService.UpdateDoctor(id, doctorUpdate);
 			var doctorRequestModel = _mapper.Map<DoctorUpdateRequestModel>(updatedDoctor);
-			if (updatedDoctor != null)
+			if (updatedDoctor == null)
 			{
-				return doctorRequestModel;
-			}
-			else
-			{
+				_logger.LogError("No doctor was found for the entered Id or Enter data in valid format in the first and last name field ");
 				return null;
 			}
+			return doctorRequestModel;
 		}
 
 		[HttpDelete("{id}")]
@@ -106,9 +111,10 @@ namespace WebAPI.Controllers
 
 				return departmentUpdateRequest;
 			}
-			catch (KeyNotFoundException)
+			catch (Exception ex)
 			{
-				throw new KeyNotFoundException();
+				_logger.LogError("Doctor not found or Department not found " + ex.Message);
+				throw ex;
 			}
 		}
 
@@ -123,9 +129,10 @@ namespace WebAPI.Controllers
 				var doctorDto = _doctorService.UpdateDoctorTitle(id, existingTitle.TitleId);
 				return doctorTitleUpdate;
 			}
-			catch (KeyNotFoundException)
+			catch (Exception ex)
 			{
-				throw new KeyNotFoundException();
+				_logger.LogError("Doctor not found or Title not found" + ex.Message);
+				throw ex;
 			}
 		}
 
@@ -138,6 +145,7 @@ namespace WebAPI.Controllers
 				var doctor = _doctorService.GetDoctorById(doctorId);
 				if (doctor == null)
 				{
+					_logger.LogError("Doctor not found" + doctorId);
 					return NotFound("Doktor bulunamadı.");
 				}
 
@@ -150,6 +158,7 @@ namespace WebAPI.Controllers
 			}
 			catch (Exception ex)
 			{
+				_logger.LogError("Rutin oluşturulurken bir hata oluştu:" + ex.Message);
 				return BadRequest("Rutin oluşturulurken bir hata oluştu: " + ex.Message);
 			}
 		}
