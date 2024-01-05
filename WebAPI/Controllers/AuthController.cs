@@ -117,7 +117,7 @@ namespace WebAPI.Controllers
 				
 				var errorContent = await response.Content.ReadAsStringAsync();			
 				_logger.LogWarning(errorContent);
-				throw new Exception(errorContent);
+				throw new Exception();
 
 			}
 
@@ -170,12 +170,12 @@ namespace WebAPI.Controllers
 					else
 					{
 						var errorContent = await response.Content.ReadAsStringAsync();
-						return BadRequest($"Firebase Hasta Kayıt Hatası: {errorContent}");
+						throw new Exception($"Firebase Hasta Kayıt Hatası: {errorContent}");
 					}
 				}
 				catch (Exception ex)
 				{
-					return StatusCode(500, $"Hasta kaydı sırasında bir hata oluştu: {ex.Message}");
+					throw new Exception($"Hasta kaydı sırasında bir hata oluştu: {ex.Message}");
 				}
 			}
 		}

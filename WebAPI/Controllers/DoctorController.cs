@@ -10,6 +10,7 @@ using DataAccess.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services;
+using static Common.Exceptions.ExceptionHandlingMiddleware;
 
 namespace WebAPI.Controllers
 {
@@ -32,17 +33,9 @@ namespace WebAPI.Controllers
 		[Authorize(Roles = "Admin,Doctor")]
 		public IActionResult CreateDoctor(DoctorRequestModel doctorRequest)
 		{
-			try
-			{
 				var doctors = _mapper.Map<DoctorDto>(doctorRequest);
 				_doctorService.CreateDoctor(doctors);
 				return Ok();
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError("Doktor oluşturulamadı: " + ex.Message);
-				return BadRequest("Doktor oluşturulamadı: " + ex.Message);
-			}
 		}
 
 		[HttpGet("Doctors")]
@@ -59,6 +52,8 @@ namespace WebAPI.Controllers
 			};
 
 			return new List<DoctorListResponseModel> { doctorListResponse };
+			
+			
 		}
 
 		[HttpGet("{id}")]
@@ -68,8 +63,8 @@ namespace WebAPI.Controllers
 			var doctorDto = _doctorService.GetDoctorById(id);
 			if(doctorDto == null)
 			{
-				_logger.LogError("No doctor was found for the entered Id!");
-				
+				throw new NotFoundException();
+
 			}
 			var doctorResponseModel = _mapper.Map<DoctorResponseModel>(doctorDto);
 			return doctorResponseModel;
@@ -83,8 +78,7 @@ namespace WebAPI.Controllers
 			var doctorRequestModel = _mapper.Map<DoctorUpdateRequestModel>(updatedDoctor);
 			if (updatedDoctor == null)
 			{
-				_logger.LogError("No doctor was found for the entered Id or Enter data in valid format in the first and last name field ");
-				return null;
+				throw new ValidationException();
 			}
 			return doctorRequestModel;
 		}
@@ -111,10 +105,10 @@ namespace WebAPI.Controllers
 
 				return departmentUpdateRequest;
 			}
-			catch (Exception ex)
+			catch
 			{
-				_logger.LogError("Doctor not found or Department not found " + ex.Message);
-				throw ex;
+				throw new DepartmentNotFoundException();
+				
 			}
 		}
 

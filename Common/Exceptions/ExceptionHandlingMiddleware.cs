@@ -2,6 +2,7 @@
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 
 
 
@@ -31,7 +32,7 @@ namespace Common.Exceptions
 				httpContext.Response.ContentType = "application/json";
 				httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
 
-				var response = new { error = "Resource not found" };
+				var response = new { error = "No doctor was found for the entered Id!" };
 				await httpContext.Response.WriteAsync(Newtonsoft.Json.JsonConvert.SerializeObject(response));
 			}
 			catch (BadRequestException ex)
@@ -44,6 +45,20 @@ namespace Common.Exceptions
 				var response = new { error = "Bad request" };
 				await httpContext.Response.WriteAsync(Newtonsoft.Json.JsonConvert.SerializeObject(response));
 			}
+			catch (ValidationException ex)
+			{
+				_logger.LogError(ex, "Resource not found.");
+
+				httpContext.Response.ContentType = "application/json";
+				httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+
+				var response = new { error = "No doctor was found for the entered Id or Enter data in valid format in the first and last name field" };
+				await httpContext.Response.WriteAsync(Newtonsoft.Json.JsonConvert.SerializeObject(response));
+			}
+			catch (DepartmentNotFoundException ex)
+			{
+				await HandleDepartmentNotFoundException(httpContext, "Department not found: " + ex.Message);
+			}
 			catch (Exception ex)
 			{
 				_logger.LogError(ex, "An unhandled exception has occurred.");
@@ -54,6 +69,18 @@ namespace Common.Exceptions
 				var response = new { error = "An error occurred" };
 				await httpContext.Response.WriteAsync(Newtonsoft.Json.JsonConvert.SerializeObject(response));
 			}
+			
+		}
+
+		private async Task HandleDepartmentNotFoundException(HttpContext httpContext, string message)
+		{
+			_logger.LogError(message);
+
+			httpContext.Response.ContentType = "application/json";
+			httpContext.Response.StatusCode = StatusCodes.Status404NotFound;
+
+			var response = new { error = message };
+			await httpContext.Response.WriteAsync(Newtonsoft.Json.JsonConvert.SerializeObject(response));
 		}
 
 		public class NotFoundException : Exception
@@ -63,11 +90,25 @@ namespace Common.Exceptions
 			public NotFoundException(string message, Exception innerException) : base(message, innerException) { }
 		}
 
+		public class DepartmentNotFoundException : Exception
+		{
+			public DepartmentNotFoundException() : base() { }
+			public DepartmentNotFoundException(string message) : base(message) { }
+			public DepartmentNotFoundException(string message, Exception innerException) : base(message, innerException) { }
+		}
+
 		public class BadRequestException : Exception
 		{
 			public BadRequestException() : base() { }
 			public BadRequestException(string message) : base(message) { }
 			public BadRequestException(string message, Exception innerException) : base(message, innerException) { }
+		}
+
+		public class ValidationException : Exception
+		{
+			public ValidationException() : base() { }
+			public ValidationException(string message) : base(message) { }
+			public ValidationException(string message, Exception innerException) : base(message, innerException) { }
 		}
 	}
 }
