@@ -1,10 +1,7 @@
-﻿using Common.Models.ResponseModels.Firebase;
-using DataAccess.Contexts;
+﻿using DataAccess.Contexts;
 using DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace Services
 {

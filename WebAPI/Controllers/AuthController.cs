@@ -22,17 +22,16 @@ namespace WebAPI.Controllers
 		private readonly HospitalAppointmentContext _context;
 		private readonly IHttpClientFactory _httpClientFactory;
 		private readonly AuthService _authService;
-		private readonly DoctorService _doctorService;
 		private readonly PatientService _patientService;
 		private readonly IMapper _mapper;
 		private readonly ILogger<AuthController> _logger;
 
-		public AuthController(HospitalAppointmentContext context, IHttpClientFactory httpClientFactory, AuthService authService, DoctorService doctorService, PatientService patientService, IMapper mapper,ILogger<AuthController> logger)
+		public AuthController(HospitalAppointmentContext context, IHttpClientFactory httpClientFactory, AuthService authService, 
+			PatientService patientService, IMapper mapper,ILogger<AuthController> logger)
 		{
 			_context = context;
 			_httpClientFactory = httpClientFactory;
 			_authService = authService;
-			_doctorService = doctorService;
 			_patientService = patientService;
 			_mapper = mapper;
 			_logger = logger;
@@ -53,7 +52,6 @@ namespace WebAPI.Controllers
 				returnSecureToken = true
 
 			};
-			//HttpResponseMessage responses = null;
 
 			// HTTP isteği oluştur
 			using (var client = _httpClientFactory.CreateClient())
@@ -67,7 +65,7 @@ namespace WebAPI.Controllers
 					FirebaseToken decoded = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(firebaseResponse.idToken);
 					var userIdFromToken = decoded.Uid;
 					var user = _authService.GetUserByFirebaseUid(userIdFromToken);
-					//var userId = _authService.GetUserIdFromFirebaseToken(firebaseResponse.idToken);
+					
 
 
 
@@ -116,7 +114,6 @@ namespace WebAPI.Controllers
 				}
 				
 				var errorContent = await response.Content.ReadAsStringAsync();			
-				_logger.LogWarning(errorContent);
 				throw new Exception();
 
 			}

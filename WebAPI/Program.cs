@@ -12,9 +12,6 @@ using Common.Exceptions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//HospitalAppointmentContext context = new();
-//var datas = await context.Patients.ToListAsync();
-
 
 var config = new ConfigurationBuilder().AddJsonFile("appsettings.json",optional: false ,reloadOnChange : true).Build();
 Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(config).CreateLogger();
