@@ -9,6 +9,8 @@ using Google.Apis.Auth.OAuth2;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Common.Exceptions;
+using Common;
+using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -68,9 +70,13 @@ builder.Services.AddAutoMapper(typeof(OneTimeMapper).Assembly);
 builder.Services.AddAutoMapper(typeof(DateInfoMapper).Assembly);
 builder.Services.AddAutoMapper(typeof(AppointmentMapper).Assembly);
 
+
+string jsonConfig = File.ReadAllText("config.json");
+var firebaseConfig = JsonConvert.DeserializeObject<FirebaseConfig>(jsonConfig);
+
 FirebaseApp.Create(new AppOptions
 {
-	Credential = GoogleCredential.FromFile(@"C:\Users\User\Desktop\loginauth-a5aca-firebase-adminsdk-lbu54-d417a6c357.json")
+	Credential = GoogleCredential.FromFile(firebaseConfig.JsonFilePath)
 });
 
 // firebase auth
@@ -78,15 +84,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(opt =>
 {
 
-	opt.Authority = "https://securetoken.google.com/loginauth-a5aca";
+	opt.Authority = firebaseConfig.Authority;
 	opt.TokenValidationParameters = new TokenValidationParameters
 	{
 		ValidateIssuer = true,
 		ValidateAudience = true,
 		ValidateLifetime = true,
 		ValidateIssuerSigningKey = true,
-		ValidIssuer = "https://securetoken.google.com/loginauth-a5aca",	
-		ValidAudience = "loginauth-a5aca",
+		ValidIssuer = firebaseConfig.ValidIssuer,	
+		ValidAudience = firebaseConfig.ValidAudience,
 
 	};
 });

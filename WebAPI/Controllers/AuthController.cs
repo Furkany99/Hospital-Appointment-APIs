@@ -11,7 +11,8 @@ using Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using FirebaseAdmin.Auth;
-using static Common.Exceptions.ExceptionHandlingMiddleware;
+using Common;
+using Microsoft.Extensions.Configuration;
 
 namespace WebAPI.Controllers
 {
@@ -25,9 +26,10 @@ namespace WebAPI.Controllers
 		private readonly PatientService _patientService;
 		private readonly IMapper _mapper;
 		private readonly ILogger<AuthController> _logger;
+		private readonly IConfiguration _configuration;
 
 		public AuthController(HospitalAppointmentContext context, IHttpClientFactory httpClientFactory, AuthService authService, 
-			PatientService patientService, IMapper mapper,ILogger<AuthController> logger)
+			PatientService patientService, IMapper mapper,ILogger<AuthController> logger, IConfiguration configuration)
 		{
 			_context = context;
 			_httpClientFactory = httpClientFactory;
@@ -35,14 +37,16 @@ namespace WebAPI.Controllers
 			_patientService = patientService;
 			_mapper = mapper;
 			_logger = logger;
+			_configuration = configuration;
 		}
+
 
 
 		[HttpPost("login")]
 		public async Task<IActionResult> Login(AccountDto accountDto)
 		{
-			// Firebase Authentication REST API URL
-			var firebaseAuthUrl = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyCgnYKRl4l8mjgHQSsa_zLCVtPBFE-upr0";
+			var firebaseConfig = _configuration.GetSection("FirebaseConfig").Get<FirebaseConfig>();
+			var firebaseAuthUrl = firebaseConfig.FirebaseAuthUrl;
 
 			// Firebase Authentication için gerekli istek verisi
 			var requestData = new
@@ -127,7 +131,8 @@ namespace WebAPI.Controllers
 		public async Task<IActionResult> RegisterPatient(PatientCreateRequestModel patientCreate)
 		{
 			var patients = _mapper.Map<PatientDto>(patientCreate);
-			var firebaseAuthUrl = "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyCgnYKRl4l8mjgHQSsa_zLCVtPBFE-upr0";
+			var firebaseConfig = _configuration.GetSection("FirebaseConfig").Get<FirebaseConfig>();
+			var firebaseAuthUrl = firebaseConfig.FirebaseAuthUrl;
 
 			var requestData = new
 			{
@@ -167,60 +172,17 @@ namespace WebAPI.Controllers
 					else
 					{
 						var errorContent = await response.Content.ReadAsStringAsync();
-						throw new Exception($"Firebase Hasta Kayıt Hatası: {errorContent}");
+						throw new Exception($"Firebase Patient Registration Error: {errorContent}");
 					}
 				}
 				catch (Exception ex)
 				{
-					throw new Exception($"Hasta kaydı sırasında bir hata oluştu: {ex.Message}");
+					throw new Exception($"An error occurred during patient registration: {ex.Message}");
 				}
 			}
 		}
 
-			//[HttpPost("register-doctor")]
-			//public async Task<IActionResult> RegisterDoctor([FromBody] DoctorDto doctorDto)
-			//{
-			//	var firebaseAuthUrl = "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyCgnYKRl4l8mjgHQSsa_zLCVtPBFE-upr0";
-
-			//	var requestData = new
-			//	{
-			//		email = doctorDto.Email,
-			//		password = doctorDto.Password,
-			//		returnSecureToken = true
-			//	};
-
-			//	using (var client = _httpClientFactory.CreateClient())
-			//	{
-			//		try
-			//		{
-			//			var response = await client.PostAsJsonAsync(firebaseAuthUrl, requestData);
-
-			//			if (response.IsSuccessStatusCode)
-			//			{
-			//				var content = await response.Content.ReadAsStringAsync();
-			//				var firebaseResponse = JsonConvert.DeserializeObject<FirebaseRegisterResponse>(content);
-
-			//				var firebaseUID = firebaseResponse.FirebaseUid;
-
-			//				_doctorService.CreateDoctor(doctorDto);
-
-			//				return Ok("Doktor kaydı başarılı");
-			//			}
-			//			else
-			//			{
-			//				var errorContent = await response.Content.ReadAsStringAsync();
-			//				return BadRequest($"Firebase Doktor Kayıt Hatası: {errorContent}");
-			//			}
-			//		}
-			//		catch (Exception ex)
-			//		{
-			//			return StatusCode(500, $"Doktor kaydı sırasında bir hata oluştu: {ex.Message}");
-			//		}
-			//	}
-			//}
-
-
-		}
-	} 
+	}
+} 
 
 

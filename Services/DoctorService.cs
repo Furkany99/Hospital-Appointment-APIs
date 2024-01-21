@@ -70,7 +70,7 @@ namespace Services
 
 			if (existingDoctor == null)
 			{
-				throw new KeyNotFoundException("Doktor ID bulunamadı: " + id);
+				throw new KeyNotFoundException("Doctor ID not found: " + id);
 			}
 
 			if (existingDoctor != null && departmentIds != null)
@@ -86,7 +86,7 @@ namespace Services
 					}
 					else
 					{
-						throw new InvalidOperationException("Geçersiz departman ID: " + departmentId);
+						throw new InvalidOperationException("Invalid department ID: " + departmentId);
 					}
 				}
 
@@ -109,7 +109,7 @@ namespace Services
 
 			if (existingDoctor == null)
 			{
-				throw new KeyNotFoundException("Doktor ID bulunamadı: " + id);
+				throw new KeyNotFoundException("Doctor ID not found: " + id);
 			}
 
 			var newTitle = context.Titles.FirstOrDefault(t => t.Id == titleId);
@@ -124,7 +124,7 @@ namespace Services
 			}
 			else
 			{
-				throw new InvalidOperationException("Geçersiz title ID: " + titleId);
+				throw new InvalidOperationException("Invalid title ID: " + titleId);
 			}
 		}
 
@@ -177,7 +177,7 @@ namespace Services
 
 			if (doctor == null)
 			{
-				throw new KeyNotFoundException("Doktor bulunamadı.");
+				throw new KeyNotFoundException("Doctor not found.");
 			}
 
 			var existingRoutine = doctor.Routines.FirstOrDefault(r => r.DayOfWeek == (int)routineDto.DayOfWeek);
@@ -186,7 +186,7 @@ namespace Services
 			{
 				if (existingRoutine != null)
 				{
-					throw new Exception("Girdiğin günde rutinin var. Lütfen güncelleme işlemi yapın.");
+					throw new Exception("You have a routine on the day you enter. Please update.");
 				}
 				else
 				{
@@ -197,7 +197,7 @@ namespace Services
 			}
 			catch (Exception ex)
 			{
-				throw new Exception("Rutin oluşturulurken bir hata oluştu: " + ex.Message);
+				throw new Exception("An error occurred while creating the routine: " + ex.Message);
 			}
 		}
 
@@ -210,14 +210,14 @@ namespace Services
 
 			if (doctor == null)
 			{
-				throw new KeyNotFoundException("Doktor bulunamadı.");
+				throw new KeyNotFoundException("Doctor not found.");
 			}
 
 			var existingRoutine = doctor.Routines.FirstOrDefault(r => r.Id == routineDto.Id);
 
 			if (existingRoutine == null)
 			{
-				throw new KeyNotFoundException("Doktorun güncellenecek rutini bulunamadı!");
+				throw new KeyNotFoundException("The doctor's routine to update could not be found!");
 			}
 
 			existingRoutine.IsOnLeave = routineDto.IsOnLeave;
@@ -248,14 +248,14 @@ namespace Services
 
 			if (doctor == null)
 			{
-				throw new KeyNotFoundException("Doktor bulunamadı.");
+				throw new KeyNotFoundException("Doctor not found.");
 			}
 
 			var routineToDelete = doctor.Routines.FirstOrDefault(r => r.Id == routineId);
 
 			if (routineToDelete == null)
 			{
-				throw new KeyNotFoundException("Doktorun {dayOfWeek} rutini bulunamadı.");
+				throw new KeyNotFoundException("Doctor's {dayOfWeek} routine not found.");
 			}
 
 			context.TimeBlocks.RemoveRange(routineToDelete.TimeBlocks);
@@ -331,14 +331,14 @@ namespace Services
 
 			if (doctor == null)
 			{
-				throw new KeyNotFoundException("Doctor bulunamadı!");
+				throw new KeyNotFoundException("Doctor not found!");
 			}
 
 			var oneTimeToUpdate = context.OneTimes.FirstOrDefault(x => x.Id == oneTimeId);
 
 			if (oneTimeToUpdate == null)
 			{
-				throw new KeyNotFoundException("İzin günü bulunamadı!");
+				throw new KeyNotFoundException("OneTime not found!");
 			}
 
 			oneTimeToUpdate.Day = new DateTime(oneTimeDtos.Day.Year, oneTimeDtos.Day.Month, oneTimeDtos.Day.Day);
@@ -458,7 +458,7 @@ namespace Services
 			}
 			else
 			{
-				throw new InvalidOperationException("Randevu bulunamadi veya Randevu süresi dolmadan işaretleme yapamazsınız!");
+				throw new InvalidOperationException("Appointment could not be found or you cannot make a mark before the appointment time expires!");
 			}
 		}
 	}

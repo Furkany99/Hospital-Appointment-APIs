@@ -51,7 +51,7 @@ namespace Services
 			}
 			else
 			{
-				throw new KeyNotFoundException("Hasta bulunamadı veya güncelleme verisi eksik.");
+				throw new KeyNotFoundException("Patient not found or update data missing.");
 			}
 		}
 
@@ -80,7 +80,7 @@ namespace Services
 			.FirstOrDefault(x => x.Id == id);
 			if (patientById == null)
 			{
-				throw new KeyNotFoundException("Hasta bulunamadı");
+				throw new KeyNotFoundException("Patient not found!");
 			}
 
 			var patientDto = _mapper.Map<PatientDto>(patientById);

@@ -28,27 +28,6 @@ namespace WebAPI.Controllers
 			_mapper = mapper;
 			_departmentService = departmentService;
 		}
-
-		////[Authorize(Roles = "Admin")]
-		//[HttpPost("Patients")]
-		//public IActionResult CreatePatient(PatientCreateRequestModel patientCreate)
-		//{
-		//	try
-		//	{
-		//		var patients = _mapper.Map<PatientDto>(patientCreate);
-		//		_patientService.CreatePatient(patients);
-		//		return Ok();
-		//	}
-		//	catch 
-		//	{
-		//		return BadRequest();
-		//	}
-
-		//}
-
-		
-
-
 		
 
 		[HttpPost("Department")]

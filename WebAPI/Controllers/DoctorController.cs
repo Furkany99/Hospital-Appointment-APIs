@@ -139,8 +139,7 @@ namespace WebAPI.Controllers
 				var doctor = _doctorService.GetDoctorById(doctorId);
 				if (doctor == null)
 				{
-					_logger.LogError("Doctor not found" + doctorId);
-					return NotFound("Doktor bulunamadı.");
+					return NotFound("Doctor not found!");
 				}
 
 				var routineDto = _mapper.Map<RoutineDto>(routineRequest);
@@ -148,12 +147,11 @@ namespace WebAPI.Controllers
 
 				_doctorService.CreateRoutine(doctorId, routineDto);
 
-				return Ok("Rutin başarıyla oluşturuldu.");
+				return Ok("The routine has been created successfully.");
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError("Rutin oluşturulurken bir hata oluştu:" + ex.Message);
-				return BadRequest("Rutin oluşturulurken bir hata oluştu: " + ex.Message);
+				return BadRequest("An error occurred while creating the routine:: " + ex.Message);
 			}
 		}
 
@@ -187,7 +185,7 @@ namespace WebAPI.Controllers
 			}
 			catch (KeyNotFoundException ex)
 			{
-				throw new KeyNotFoundException("Doktor veya rutin bulunamadı.", ex);
+				throw new KeyNotFoundException("No doctor or routine found.", ex);
 			}
 		}
 
@@ -198,7 +196,7 @@ namespace WebAPI.Controllers
 			try
 			{
 				_doctorService.DeleteRoutine(doctorId, routineID);
-				return Ok("Doktorun rutinleri ve TimeBlock verileri silindi.");
+				return Ok("The doctor's routines and TimeBlock data have been deleted.");
 			}
 			catch (KeyNotFoundException ex)
 			{
@@ -210,15 +208,14 @@ namespace WebAPI.Controllers
 		[Authorize(Roles = "Admin,Doctor")]
 		public IActionResult CreateOneTime(int doctorId, OneTimeRequestModel requestModel)
 		{
-			try
+			
+			var doctor = _doctorService.GetDoctorById(doctorId);
+
+			if (doctor == null)
 			{
-				var doctor = _doctorService.GetDoctorById(doctorId);
-
-				if (doctor == null)
-				{
-					return NotFound("Doktor bulunamadı.");
-				}
-
+				return NotFound("Doctor not found");
+			}
+			try { 	
 				var onetimeDto = _mapper.Map<OneTimeDto>(requestModel);
 				onetimeDto.DoctorId = doctorId;
 				_doctorService.CreateOneTime(doctorId, onetimeDto);
@@ -275,7 +272,7 @@ namespace WebAPI.Controllers
 			}
 			catch
 			{
-				throw new KeyNotFoundException("Doktor veya İzin günü bulunamadı!");
+				throw new KeyNotFoundException("No doctor or day off found!");
 			}
 		}
 
@@ -322,7 +319,7 @@ namespace WebAPI.Controllers
 		public IActionResult AddPrescriptionToAppointment(int appointmentId, [FromBody] string prescription)
 		{
 			_doctorService.AddPrescriptionToAppointment(appointmentId, prescription);
-			return Ok("Reçete başarıyla eklendi.");
+			return Ok("The recipe has been added successfully.");
 		}
 
 		[HttpPost("{appointmentId}/mark-as-no-show")]
@@ -330,7 +327,7 @@ namespace WebAPI.Controllers
 		public IActionResult MarkAsNoShow(int appointmentId)
 		{
 			_doctorService.MarkPatientAsNoShow(appointmentId);
-			return Ok("Randevu 'Hasta Gelmedi' olarak işaretlendi.");	
+			return Ok("The appointment is marked as 'No Patient Showed'.");	
 		}
 	}
 }
