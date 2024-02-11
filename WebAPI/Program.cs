@@ -70,9 +70,12 @@ builder.Services.AddAutoMapper(typeof(OneTimeMapper).Assembly);
 builder.Services.AddAutoMapper(typeof(DateInfoMapper).Assembly);
 builder.Services.AddAutoMapper(typeof(AppointmentMapper).Assembly);
 
+var mySecret = builder.Configuration["FirebaseConfig:FirebaseAuthUrl"];
 
-string jsonConfig = File.ReadAllText("config.json");
-var firebaseConfig = JsonConvert.DeserializeObject<FirebaseConfig>(jsonConfig);
+var dataConfig = builder.Configuration.GetSection("FirebaseConfig").Get<FirebaseConfig>();
+
+var firebaseConfig = new FirebaseConfig();
+builder.Configuration.GetSection("FirebaseConfig").Bind(firebaseConfig);
 
 FirebaseApp.Create(new AppOptions
 {
