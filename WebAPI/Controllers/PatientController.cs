@@ -1,9 +1,5 @@
 ﻿using AutoMapper;
-using Common.Dto;
-using Common.Models;
-using Common.Models.RequestModels.Appointment;
 using Common.Models.RequestModels.Patient;
-using Common.Models.ResponseModels.Appointment;
 using Common.Models.ResponseModels.Patient;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -55,17 +51,11 @@ namespace WebAPI.Controllers
 		[Authorize(Roles = "Admin,Patient")]
 		public PatientUpdateRequestModel UpdatePatient(int id, PatientUpdateRequestModel patientUpdate)
 		{
+
 			var updatedPatient = _patientService.Update(id, patientUpdate);
 			var PatientRequestModel = _mapper.Map<PatientUpdateRequestModel>(updatedPatient);
-			if (updatedPatient != null)
-			{
-				return PatientRequestModel;
-			}
-			else
-			{
-				return null;
-			}
-
+			return PatientRequestModel;
+			
 		}
 
 		[HttpDelete("Patient/{id}")]

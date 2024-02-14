@@ -1,12 +1,12 @@
 ﻿using AutoMapper;
 using Common.Dto;
-//using Common.Helpers;
 using Common.Models;
 using Common.Models.RequestModels.Appointment;
 using Common.Models.ResponseModels.Appointment;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services;
+using static Common.Exceptions.ExceptionHandlingMiddleware;
 
 namespace WebAPI.Controllers
 {
@@ -36,7 +36,7 @@ namespace WebAPI.Controllers
 			}
 			catch
 			{
-				return BadRequest();
+				throw new BadRequestException();
 			}
 		}
 

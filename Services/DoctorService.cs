@@ -4,6 +4,7 @@ using Common.Models.RequestModels.Doctor;
 using DataAccess.Contexts;
 using DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
+using static Common.Exceptions.ExceptionHandlingMiddleware;
 
 namespace Services
 {
@@ -46,20 +47,18 @@ namespace Services
 		{
 			var existingDoctor = context.Doctors.Find(id);
 
-			if (existingDoctor != null && doctorUpdate != null)
+			if (existingDoctor == null && doctorUpdate == null)
 			{
-				existingDoctor.Name = doctorUpdate.Name;
-				existingDoctor.Surname = doctorUpdate.Surname;
-
-				context.SaveChanges();
-
-				DoctorDto doctorDto = _mapper.Map<DoctorDto>(existingDoctor);
-				return doctorDto;
+				throw new NotFoundException();
 			}
-			else
-			{
-				throw new KeyNotFoundException();
-			}
+
+			existingDoctor.Name = doctorUpdate.Name;
+			existingDoctor.Surname = doctorUpdate.Surname;
+
+			context.SaveChanges();
+
+			DoctorDto doctorDto = _mapper.Map<DoctorDto>(existingDoctor);
+			return doctorDto;
 		}
 
 		public DoctorDto UpdateDoctorDepartment(int id, List<int> departmentIds)
@@ -70,7 +69,7 @@ namespace Services
 
 			if (existingDoctor == null)
 			{
-				throw new KeyNotFoundException("Doctor ID not found: " + id);
+				throw new NotFoundException("Doctor ID not found: " + id);
 			}
 
 			if (existingDoctor != null && departmentIds != null)
@@ -86,7 +85,7 @@ namespace Services
 					}
 					else
 					{
-						throw new InvalidOperationException("Invalid department ID: " + departmentId);
+						throw new BadRequestException("Invalid department ID: " + departmentId);
 					}
 				}
 
@@ -97,7 +96,7 @@ namespace Services
 			}
 			else
 			{
-				throw new KeyNotFoundException();
+				throw new NotFoundException();
 			}
 		}
 
@@ -109,34 +108,33 @@ namespace Services
 
 			if (existingDoctor == null)
 			{
-				throw new KeyNotFoundException("Doctor ID not found: " + id);
+				throw new NotFoundException("Doctor ID not found: " + id);
 			}
 
 			var newTitle = context.Titles.FirstOrDefault(t => t.Id == titleId);
 
-			if (newTitle != null)
+			if (newTitle == null)
 			{
-				existingDoctor.Title = newTitle;
-				context.SaveChanges();
+				throw new BadRequestException("Invalid title ID: " + titleId);
+			}
 
-				DoctorDto doctorDto = _mapper.Map<DoctorDto>(existingDoctor);
-				return doctorDto;
-			}
-			else
-			{
-				throw new InvalidOperationException("Invalid title ID: " + titleId);
-			}
+			existingDoctor.Title = newTitle;
+			context.SaveChanges();
+
+			DoctorDto doctorDto = _mapper.Map<DoctorDto>(existingDoctor);
+			return doctorDto;
 		}
 
 		public void DeleteDoctor(int id)
 		{
 			var deleteDoctor = context.Doctors.Find(id);
 
-			if (deleteDoctor != null)
+			if (deleteDoctor == null)
 			{
-				context.Doctors.Remove(deleteDoctor);
-				context.SaveChanges();
+				throw new NotFoundException("Doctor not found!");
 			}
+			context.Doctors.Remove(deleteDoctor);
+			context.SaveChanges();
 		}
 
 		public List<DoctorDto> GetDoctors()
@@ -160,7 +158,7 @@ namespace Services
 			.FirstOrDefault(x => x.Id == id);
 			if (doctorById == null)
 			{
-				throw new KeyNotFoundException();
+				throw new NotFoundException("Doctor not found!");
 			}
 
 			var doctorDto = _mapper.Map<DoctorDto>(doctorById);
@@ -186,7 +184,7 @@ namespace Services
 			{
 				if (existingRoutine != null)
 				{
-					throw new Exception("You have a routine on the day you enter. Please update.");
+					throw new BadRequestException("You have a routine on the day you enter. Please update.");
 				}
 				else
 				{
@@ -195,9 +193,9 @@ namespace Services
 					context.SaveChanges();
 				}
 			}
-			catch (Exception ex)
+			catch
 			{
-				throw new Exception("An error occurred while creating the routine: " + ex.Message);
+				throw new BadRequestException("An error occurred while creating the routine.");
 			}
 		}
 
@@ -210,14 +208,14 @@ namespace Services
 
 			if (doctor == null)
 			{
-				throw new KeyNotFoundException("Doctor not found.");
+				throw new NotFoundException("Doctor not found.");
 			}
 
 			var existingRoutine = doctor.Routines.FirstOrDefault(r => r.Id == routineDto.Id);
 
 			if (existingRoutine == null)
 			{
-				throw new KeyNotFoundException("The doctor's routine to update could not be found!");
+				throw new NotFoundException("The doctor's routine to update could not be found!");
 			}
 
 			existingRoutine.IsOnLeave = routineDto.IsOnLeave;
@@ -248,14 +246,14 @@ namespace Services
 
 			if (doctor == null)
 			{
-				throw new KeyNotFoundException("Doctor not found.");
+				throw new NotFoundException("Doctor not found.");
 			}
 
 			var routineToDelete = doctor.Routines.FirstOrDefault(r => r.Id == routineId);
 
 			if (routineToDelete == null)
 			{
-				throw new KeyNotFoundException("Doctor's {dayOfWeek} routine not found.");
+				throw new NotFoundException("Doctor's {dayOfWeek} routine not found.");
 			}
 
 			context.TimeBlocks.RemoveRange(routineToDelete.TimeBlocks);
@@ -279,7 +277,7 @@ namespace Services
 
 			if (oneTime == null)
 			{
-				throw new KeyNotFoundException();
+				throw new NotFoundException();
 			}
 
 			DateOnly oneTimeDtoDate = oneTimeDto.Day;
@@ -310,14 +308,14 @@ namespace Services
 
 			if (doctor == null)
 			{
-				throw new KeyNotFoundException("Doctor not found");
+				throw new NotFoundException("Doctor not found");
 			}
 
 			var oneTime = doctor.OneTimes.FirstOrDefault(ot => ot.Id == oneTimeId);
 
 			if (oneTime == null)
 			{
-				throw new KeyNotFoundException("OneTime not found");
+				throw new NotFoundException("OneTime not found");
 			}
 
 			context.OneTimeTimeBlocks.RemoveRange(oneTime.OneTimeTimeBlocks);
@@ -331,14 +329,14 @@ namespace Services
 
 			if (doctor == null)
 			{
-				throw new KeyNotFoundException("Doctor not found!");
+				throw new NotFoundException("Doctor not found!");
 			}
 
 			var oneTimeToUpdate = context.OneTimes.FirstOrDefault(x => x.Id == oneTimeId);
 
 			if (oneTimeToUpdate == null)
 			{
-				throw new KeyNotFoundException("OneTime not found!");
+				throw new NotFoundException("OneTime not found!");
 			}
 
 			oneTimeToUpdate.Day = new DateTime(oneTimeDtos.Day.Year, oneTimeDtos.Day.Month, oneTimeDtos.Day.Day);
@@ -372,7 +370,7 @@ namespace Services
 
 			if (doctor == null)
 			{
-				return null;
+				throw new NotFoundException("Doctor not found!");
 			}
 
 			if (!startDate.HasValue || !endDate.HasValue)
@@ -441,7 +439,12 @@ namespace Services
 		{
 			var appointment = context.Appointments.Include(a => a.Status).FirstOrDefault(a => a.Id == appointmentId && (a.Status.Id == 14));
 
-			appointment.Prescription = prescription;
+            if (appointment == null)
+            {
+				throw new NotFoundException("Appointment not found!"); 
+            }
+
+            appointment.Prescription = prescription;
 			appointment.StatusId = 14;
 			context.SaveChanges();
 		}
@@ -451,15 +454,13 @@ namespace Services
 			var appointment = context.Appointments.FirstOrDefault(a => a.Id == appointmentId && a.StatusId != 17 &&
 			!(a.StatusId == 14 || a.StatusId == 16));
 
-			if (appointment != null && DateTime.Now > appointment.Date.AddMinutes(10))
+			if (appointment == null && DateTime.Now <= appointment.Date.AddMinutes(10))
 			{
-				appointment.StatusId = 17;
-				context.SaveChanges();
+				throw new NotFoundException("Appointment could not be found or you cannot make a mark before the appointment time expires!");
 			}
-			else
-			{
-				throw new InvalidOperationException("Appointment could not be found or you cannot make a mark before the appointment time expires!");
-			}
+
+			appointment.StatusId = 17;
+			context.SaveChanges();
 		}
 	}
 }

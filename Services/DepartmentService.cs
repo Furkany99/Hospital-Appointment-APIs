@@ -3,11 +3,7 @@ using Common.Dto;
 using Common.Models.RequestModels.Department;
 using DataAccess.Contexts;
 using DataAccess.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using static Common.Exceptions.ExceptionHandlingMiddleware;
 
 namespace Services
 {
@@ -34,36 +30,32 @@ namespace Services
 		{
 			var departments = _context.Departments.Find(id);
 
-			if (departments != null)
+			if (departments == null)
 			{
-				_context.Departments.Remove(departments);
-				_context.SaveChanges();
+				throw new NotFoundException("Department not found!");
 
 			}
+			_context.Departments.Remove(departments);
+			_context.SaveChanges();
 		}
 
 		public DepartmentDto UpdateDepartment(int id, DepartmentUpdateRequestModel departmentUpdate)
 		{
 			var existingDepartment = _context.Departments.Find(id);
 
-			if (existingDepartment != null && departmentUpdate != null)
+			if (existingDepartment == null && departmentUpdate == null)
 			{
-				existingDepartment.DepartmentName = departmentUpdate.DepartmentName;
-
-
-				_context.SaveChanges();
-
-				DepartmentDto departmentDto = _mapper.Map<DepartmentDto>(existingDepartment);
-				return departmentDto;
+				throw new NotFoundException("Department not found!");
 
 			}
 
-			else
-			{
-				throw new KeyNotFoundException();
-			}
+			existingDepartment.DepartmentName = departmentUpdate.DepartmentName;
 
 
+			_context.SaveChanges();
+
+			DepartmentDto departmentDto = _mapper.Map<DepartmentDto>(existingDepartment);
+			return departmentDto;
 		}
 
 		public List<DepartmentDto> GetDepartments() 

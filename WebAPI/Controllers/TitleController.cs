@@ -25,16 +25,11 @@ namespace WebAPI.Controllers
 		[Authorize(Roles = "Admin")]
 		public IActionResult CreateTitle(TitleRequestModel titleRequest) 
 		{
-			try
-			{
-				var titles = _mapper.Map<TitleDto>(titleRequest);
-				_titleService.CreateTitle(titles);
-				return Ok();
-			}
-			catch
-			{
-				return BadRequest();
-			}
+
+			var titles = _mapper.Map<TitleDto>(titleRequest);
+			_titleService.CreateTitle(titles);
+			return Ok();
+			
 		}
 
 		[HttpGet()]
@@ -71,14 +66,8 @@ namespace WebAPI.Controllers
 		{
 			var updatedTitle = _titleService.UpdateTitle(id, titleUpdate);
 			var TitleRequestModel = _mapper.Map<TitleUpdateRequestModel>(updatedTitle);
-			if (updatedTitle != null)
-			{
-				return TitleRequestModel;
-			}
-			else
-			{
-				return null;
-			}
+			return TitleRequestModel;
+			
 
 		}
 

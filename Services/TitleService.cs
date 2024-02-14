@@ -3,12 +3,7 @@ using Common.Dto;
 using Common.Models.RequestModels.Title;
 using DataAccess.Contexts;
 using DataAccess.Entities;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using static Common.Exceptions.ExceptionHandlingMiddleware;
 
 namespace Services
 {
@@ -27,6 +22,11 @@ namespace Services
         {
             Title titles = _mapper.Map<Title>(titleDto);
 
+			if(titles == null ) 
+			{
+				throw new NotFoundException("Title not found!");
+			}
+
             _context.Titles.Add(titles);
             _context.SaveChanges();
         }
@@ -35,33 +35,33 @@ namespace Services
         {
 			var existingTitle = _context.Titles.Find(id);
 
-			if (existingTitle != null && titleUpdate != null)
+			if (existingTitle == null && titleUpdate == null)
 			{
-				existingTitle.TitleName = titleUpdate.TitleName;
-					
-				_context.SaveChanges();
-
-				TitleDto titleDto = _mapper.Map<TitleDto>(existingTitle);
-				return titleDto;
+				throw new NotFoundException();
 
 			}
 
-			else
-			{
-				throw new KeyNotFoundException();
-			}
+			existingTitle.TitleName = titleUpdate.TitleName;
+
+			_context.SaveChanges();
+
+			TitleDto titleDto = _mapper.Map<TitleDto>(existingTitle);
+			return titleDto;
+
+
 		}
 
         public void DeleteTitle(int id) 
         {
 			var titles = _context.Titles.Find(id);
 
-			if (titles != null)
+			if (titles == null)
 			{
-				_context.Titles.Remove(titles);
-				_context.SaveChanges();
-
+				throw new NotFoundException("Title not found");
 			}
+
+			_context.Titles.Remove(titles);
+			_context.SaveChanges();
 		}
 
         public List<TitleDto> GetTitles() 
@@ -74,9 +74,10 @@ namespace Services
 		public TitleDto GetTitleById(int id)
 		{
 			var titleByID = _context.Titles.FirstOrDefault(x => x.Id == id);
+
 			if (titleByID == null)
 			{
-				throw new KeyNotFoundException("Geçerli ID giriniz!");
+				throw new NotFoundException("Title not found!");
 			}
 
 			var titleDto = _mapper.Map<TitleDto>(titleByID);

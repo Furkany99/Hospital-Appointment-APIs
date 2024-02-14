@@ -1,15 +1,11 @@
 ﻿using AutoMapper;
 using Common.Dto;
 using Common.Models.RequestModels.Department;
-using Common.Models.RequestModels.Patient;
 using Common.Models.ResponseModels.Department;
-using Common.Models.ResponseModels.Patient;
-using DataAccess.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Services;
+using static Common.Exceptions.ExceptionHandlingMiddleware;
 
 namespace WebAPI.Controllers
 {
@@ -44,9 +40,8 @@ namespace WebAPI.Controllers
 			catch
 			{
 
-				return BadRequest();
+				throw new BadRequestException();
 			}
-
 		}
 
 		[HttpGet("Departments")]
@@ -74,14 +69,11 @@ namespace WebAPI.Controllers
 		{
 			var updatedDepartment = _departmentService.UpdateDepartment(id, departmentUpdate);
 			var departmentRequestModel = _mapper.Map<DepartmentUpdateRequestModel>(updatedDepartment);
-			if (departmentUpdate != null)
+			if (departmentUpdate == null)
 			{
-				return departmentRequestModel;
+				throw new NotFoundException("Department not found!");
 			}
-			else
-			{
-				return null;
-			}
+			return departmentRequestModel;
 
 		}
 
@@ -100,7 +92,7 @@ namespace WebAPI.Controllers
 			}
 			catch 
 			{
-				return BadRequest();
+				throw new BadRequestException("Department not found!");
 			}
 			
 

@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Azure;
 using Common.Dto;
 using Common.Models.RequestModels.Patient;
 using Common.Models.ResponseModels.Firebase;
@@ -12,7 +11,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using FirebaseAdmin.Auth;
 using Common;
-using Microsoft.Extensions.Configuration;
+
 
 namespace WebAPI.Controllers
 {

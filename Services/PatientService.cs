@@ -6,6 +6,7 @@ using DataAccess.Contexts;
 using DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using static Common.Exceptions.ExceptionHandlingMiddleware;
 
 namespace Services
 {
@@ -39,31 +40,30 @@ namespace Services
 		{
 			var existingPatient = _context.Patients.Find(id);
 
-			if (existingPatient != null && patientUpdate != null)
+			if (existingPatient == null && patientUpdate == null)
 			{
-				existingPatient.Name = patientUpdate.Name;
-				existingPatient.Surname = patientUpdate.Surname;
-
-				_context.SaveChanges();
-
-				PatientDto updatedPatientDto = _mapper.Map<PatientDto>(existingPatient);
-				return updatedPatientDto;
+				throw new NotFoundException("Patient not found or update data missing.");
 			}
-			else
-			{
-				throw new KeyNotFoundException("Patient not found or update data missing.");
-			}
+
+			existingPatient.Name = patientUpdate.Name;
+			existingPatient.Surname = patientUpdate.Surname;
+
+			_context.SaveChanges();
+
+			PatientDto updatedPatientDto = _mapper.Map<PatientDto>(existingPatient);
+			return updatedPatientDto;
 		}
 
 		public void Delete(int id)
 		{
 			var existingPatient = _context.Patients.Find(id);
 
-			if (existingPatient != null)
+			if (existingPatient == null)
 			{
-				_context.Patients.Remove(existingPatient);
-				_context.SaveChanges();
+				throw new NotFoundException("Patient not found!");
 			}
+			_context.Patients.Remove(existingPatient);
+			_context.SaveChanges();
 		}
 
 		public List<PatientDto> GetPatients()
@@ -80,7 +80,7 @@ namespace Services
 			.FirstOrDefault(x => x.Id == id);
 			if (patientById == null)
 			{
-				throw new KeyNotFoundException("Patient not found!");
+				throw new NotFoundException("Patient not found!");
 			}
 
 			var patientDto = _mapper.Map<PatientDto>(patientById);

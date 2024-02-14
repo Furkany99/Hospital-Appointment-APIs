@@ -5,6 +5,7 @@ using Common.Models.ResponseModels.Appointment;
 using DataAccess.Contexts;
 using DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
+using static Common.Exceptions.ExceptionHandlingMiddleware;
 
 namespace Services
 {
@@ -40,12 +41,12 @@ namespace Services
 
 			if (doctorOnLeaveDays.Contains(appointmentDate))
 			{
-				throw new InvalidOperationException("The appointment could not be created. Appointments cannot be made for a date when the doctor is on leave..");
+				throw new BadRequestException("The appointment could not be created. Appointments cannot be made for a date when the doctor is on leave..");
 			}
 
 			if (appointment.Date < now.Date)
 			{
-				throw new InvalidOperationException("The appointment could not be created. Appointments cannot be made for a past date..");
+				throw new BadRequestException("The appointment could not be created. Appointments cannot be made for a past date..");
 			}
 
 			if (defaultStatus != null)
@@ -54,14 +55,14 @@ namespace Services
 			}
 			else
 			{
-				throw new InvalidOperationException("Default status not found!");
+				throw new NotFoundException("Default status not found!");
 			}
 
 			bool isDoctorAvailable = IsDoctorAvailableForAppointment(appointmentDto.DocId, appointmentDto.Date, appointmentDto.appointmentTimes.Select(s => s.StartTime).FirstOrDefault(), appointmentDto.appointmentTimes.Select(s => s.EndTime).FirstOrDefault());
 
 			if (!isDoctorAvailable)
 			{
-				throw new InvalidOperationException("The appointment could not be created. Doctor is not available.");
+				throw new NotFoundException("The appointment could not be created. Doctor is not available.");
 			}
 
 			appointment.PatientId = appointmentDto.PatientId;
@@ -79,12 +80,12 @@ namespace Services
 
 			if (appointment.StatusId == 14)
 			{
-				throw new InvalidOperationException("You cannot cancel a completed appointment.");
+				throw new BadRequestException("You cannot cancel a completed appointment.");
 			}
 
 			if (appointment.Date < DateTime.Today)
 			{
-				throw new InvalidOperationException("You cannot cancel a past appointment.");
+				throw new BadRequestException("You cannot cancel a past appointment.");
 			}
 
 			appointment.StatusId = 16;

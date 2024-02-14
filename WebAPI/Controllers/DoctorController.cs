@@ -10,7 +10,6 @@ using DataAccess.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services;
-using static Common.Exceptions.ExceptionHandlingMiddleware;
 
 namespace WebAPI.Controllers
 {
@@ -61,11 +60,6 @@ namespace WebAPI.Controllers
 		public DoctorResponseModel GetDoctorsByID(int id)
 		{
 			var doctorDto = _doctorService.GetDoctorById(id);
-			if(doctorDto == null)
-			{
-				throw new NotFoundException();
-
-			}
 			var doctorResponseModel = _mapper.Map<DoctorResponseModel>(doctorDto);
 			return doctorResponseModel;
 		}
@@ -76,10 +70,6 @@ namespace WebAPI.Controllers
 		{
 			var updatedDoctor = _doctorService.UpdateDoctor(id, doctorUpdate);
 			var doctorRequestModel = _mapper.Map<DoctorUpdateRequestModel>(updatedDoctor);
-			if (updatedDoctor == null)
-			{
-				throw new ValidationException();
-			}
 			return doctorRequestModel;
 		}
 
@@ -93,41 +83,29 @@ namespace WebAPI.Controllers
 
 		[HttpPut("{id}/Departments")]
 		[Authorize(Roles = "Admin")]
-		public DoctorDepartmentUpdateRequest UpdateDoctorDepartment(int id, DoctorDepartmentUpdateRequest departmentUpdateRequest)
+		public ActionResult<DoctorDepartmentUpdateRequest> UpdateDoctorDepartment(int id, DoctorDepartmentUpdateRequest departmentUpdateRequest)
 		{
-			try
-			{
-				var existingDoctor = _doctorService.GetDoctorById(id);
-
-				_mapper.Map(departmentUpdateRequest, existingDoctor);
-
-				var doctorDto = _doctorService.UpdateDoctorDepartment(id, existingDoctor.DepartmentIds);
-
-				return departmentUpdateRequest;
-			}
-			catch
-			{
-				throw new DepartmentNotFoundException();
-				
-			}
+			
+			var existingDoctor = _doctorService.GetDoctorById(id);
+			_mapper.Map(departmentUpdateRequest, existingDoctor);
+			var updateDoc = _doctorService.UpdateDoctorDepartment(id, existingDoctor.DepartmentIds);
+			var updatedDoctorRequest = _mapper.Map<DoctorDepartmentUpdateRequest>(updateDoc);
+			return updatedDoctorRequest;
+			
 		}
 
 		[HttpPut("{id}/Titles")]
 		[Authorize(Roles = "Admin")]
 		public DoctorTitleUpdateRequest UpdateDoctorTitle(int id, DoctorTitleUpdateRequest doctorTitleUpdate)
 		{
-			try
-			{
-				var existingTitle = _doctorService.GetDoctorById(id);
-				_mapper.Map(doctorTitleUpdate, existingTitle);
-				var doctorDto = _doctorService.UpdateDoctorTitle(id, existingTitle.TitleId);
-				return doctorTitleUpdate;
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError("Doctor not found or Title not found" + ex.Message);
-				throw ex;
-			}
+			
+			var existingDoctorTitle = _doctorService.GetDoctorById(id);
+			_mapper.Map(doctorTitleUpdate, existingDoctorTitle);
+			var UpdatedoctorDto = _doctorService.UpdateDoctorTitle(id, existingDoctorTitle.TitleId);
+			var updateDoctorTitle = _mapper.Map<DoctorTitleUpdateRequest>(UpdatedoctorDto);
+			return updateDoctorTitle;
+			
+			
 		}
 
 		[HttpPost("{doctorId}/routines")]
@@ -137,10 +115,6 @@ namespace WebAPI.Controllers
 			try
 			{
 				var doctor = _doctorService.GetDoctorById(doctorId);
-				if (doctor == null)
-				{
-					return NotFound("Doctor not found!");
-				}
 
 				var routineDto = _mapper.Map<RoutineDto>(routineRequest);
 				routineDto.DoctorId = doctorId;
@@ -151,7 +125,7 @@ namespace WebAPI.Controllers
 			}
 			catch (Exception ex)
 			{
-				return BadRequest("An error occurred while creating the routine:: " + ex.Message);
+				return BadRequest("An error occurred while creating the routine: " + ex.Message);
 			}
 		}
 
@@ -175,33 +149,22 @@ namespace WebAPI.Controllers
 		[Authorize(Roles = "Admin")]
 		public RoutineUpdateRequestModel UpdateRoutineAndTimeBlocks(int doctorId, int routineId, RoutineUpdateRequestModel routineUpdateRequest)
 		{
-			try
-			{
-				var routineDto = _mapper.Map<RoutineDto>(routineUpdateRequest);
-				routineDto.DoctorId = doctorId;
-				routineDto.Id = routineId;
-				_doctorService.UpdateRoutineAndTimeBlocks(doctorId, routineDto);
-				return routineUpdateRequest;
-			}
-			catch (KeyNotFoundException ex)
-			{
-				throw new KeyNotFoundException("No doctor or routine found.", ex);
-			}
+
+			var routineDto = _mapper.Map<RoutineDto>(routineUpdateRequest);
+			routineDto.DoctorId = doctorId;
+			routineDto.Id = routineId;
+			_doctorService.UpdateRoutineAndTimeBlocks(doctorId, routineDto);
+			return routineUpdateRequest;
+			
 		}
 
 		[HttpDelete("{doctorId}/routines")]
 		[Authorize(Roles = "Admin")]
 		public IActionResult DeleteDoctorRoutine(int doctorId, int routineID)
 		{
-			try
-			{
-				_doctorService.DeleteRoutine(doctorId, routineID);
-				return Ok("The doctor's routines and TimeBlock data have been deleted.");
-			}
-			catch (KeyNotFoundException ex)
-			{
-				return NotFound(ex.Message);
-			}
+			_doctorService.DeleteRoutine(doctorId, routineID);
+			return Ok("The doctor's routines and TimeBlock data have been deleted.");
+			
 		}
 
 		[HttpPost("{doctorId}/Onetime")]
@@ -209,22 +172,12 @@ namespace WebAPI.Controllers
 		public IActionResult CreateOneTime(int doctorId, OneTimeRequestModel requestModel)
 		{
 			
-			var doctor = _doctorService.GetDoctorById(doctorId);
-
-			if (doctor == null)
-			{
-				return NotFound("Doctor not found");
-			}
-			try { 	
-				var onetimeDto = _mapper.Map<OneTimeDto>(requestModel);
-				onetimeDto.DoctorId = doctorId;
-				_doctorService.CreateOneTime(doctorId, onetimeDto);
-				return Ok();
-			}
-			catch (KeyNotFoundException)
-			{
-				return NotFound("Doctor not found");
-			}
+			_doctorService.GetDoctorById(doctorId);
+			var onetimeDto = _mapper.Map<OneTimeDto>(requestModel);
+			onetimeDto.DoctorId = doctorId;
+			_doctorService.CreateOneTime(doctorId, onetimeDto);
+			return Ok();
+			
 		}
 
 		[HttpGet("{doctorId}/onetimes")]
@@ -262,33 +215,22 @@ namespace WebAPI.Controllers
 		[Authorize(Roles = "Admin,Doctor")]
 		public OneTimeUpdateRequest UpdateOneTime(int doctorId, int oneTimeId, OneTimeUpdateRequest oneTimeUpdate)
 		{
-			try
-			{
-				var oneTimeDtos = _mapper.Map<OneTimeDto>(oneTimeUpdate);
-				oneTimeDtos.DoctorId = doctorId;
-				oneTimeDtos.Id = oneTimeId;
-				_doctorService.UpdateOneTime(doctorId, oneTimeId, oneTimeDtos);
-				return oneTimeUpdate;
-			}
-			catch
-			{
-				throw new KeyNotFoundException("No doctor or day off found!");
-			}
+			var oneTimeDtos = _mapper.Map<OneTimeDto>(oneTimeUpdate);
+			oneTimeDtos.DoctorId = doctorId;
+			oneTimeDtos.Id = oneTimeId;
+			_doctorService.UpdateOneTime(doctorId, oneTimeId, oneTimeDtos);
+			return oneTimeUpdate;
+			
 		}
 
 		[HttpDelete("{doctorId}/onetimes/{oneTimeId}")]
 		[Authorize(Roles = "Admin,Doctor")]
 		public IActionResult DeleteOneTime(int doctorId, int oneTimeId)
 		{
-			try
-			{
-				_doctorService.DeleteOneTime(doctorId, oneTimeId);
-				return NoContent();
-			}
-			catch (KeyNotFoundException ex)
-			{
-				return NotFound(ex.Message);
-			}
+
+			_doctorService.DeleteOneTime(doctorId, oneTimeId);
+			return NoContent();
+			
 		}
 
 		[HttpGet("{doctorId}/routines-and-onetimes")]
@@ -298,12 +240,6 @@ namespace WebAPI.Controllers
 
 			var doctorInfo = _doctorService.GetDoctorRoutinesAndOneTimes(doctorId, startDate, endDate);
 			var doctorInfoResponseModels = _mapper.Map<List<DateInfoDto>>(doctorInfo);
-
-
-			if (doctorInfo == null)
-			{
-				return null;
-			}
 
 			var responseModel = new DoctorRoutinesAndOneTimesResponseModel
 			{
