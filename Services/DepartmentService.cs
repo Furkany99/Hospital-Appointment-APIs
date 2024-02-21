@@ -4,6 +4,7 @@ using Common.Models.RequestModels.Department;
 using DataAccess.Contexts;
 using DataAccess.Entities;
 using static Common.Exceptions.ExceptionHandlingMiddleware;
+using static Microsoft.AspNetCore.Hosting.Internal.HostingApplication;
 
 namespace Services
 {
@@ -20,6 +21,11 @@ namespace Services
 
 		public void CreateDepartments(DepartmentDto deprtmanetDto) 
 		{
+			if (_mapper == null)
+			{
+				throw new InvalidOperationException("_mapper is not initialized.");
+			}
+
 			Department department = _mapper.Map<Department>(deprtmanetDto);
 
 			_context.Departments.Add(department);

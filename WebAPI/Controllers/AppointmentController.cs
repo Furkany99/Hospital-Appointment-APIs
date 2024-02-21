@@ -28,16 +28,11 @@ namespace WebAPI.Controllers
 		[Authorize(Roles = "Admin,Patient")]
 		public IActionResult Appointment(AppointmentRequestModel requestModel)
 		{
-			try
-			{
+			
 				var appointments = _mapper.Map<AppointmentDto>(requestModel);
 				_appointmentService.CreateAppointment(appointments);
 				return Ok();
-			}
-			catch
-			{
-				throw new BadRequestException();
-			}
+			
 		}
 
 		[HttpDelete("Appointments")]

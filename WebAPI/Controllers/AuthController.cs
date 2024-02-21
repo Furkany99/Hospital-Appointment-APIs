@@ -1,17 +1,16 @@
 ﻿using AutoMapper;
+using Common;
 using Common.Dto;
 using Common.Models.RequestModels.Patient;
 using Common.Models.ResponseModels.Firebase;
 using DataAccess.Contexts;
+using FirebaseAdmin.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using FirebaseAdmin.Auth;
-using Common;
-
 
 namespace WebAPI.Controllers
 {
@@ -27,8 +26,8 @@ namespace WebAPI.Controllers
 		private readonly ILogger<AuthController> _logger;
 		private readonly IConfiguration _configuration;
 
-		public AuthController(HospitalAppointmentContext context, IHttpClientFactory httpClientFactory, AuthService authService, 
-			PatientService patientService, IMapper mapper,ILogger<AuthController> logger, IConfiguration configuration)
+		public AuthController(HospitalAppointmentContext context, IHttpClientFactory httpClientFactory, AuthService authService,
+			PatientService patientService, IMapper mapper, ILogger<AuthController> logger, IConfiguration configuration)
 		{
 			_context = context;
 			_httpClientFactory = httpClientFactory;
@@ -38,8 +37,6 @@ namespace WebAPI.Controllers
 			_logger = logger;
 			_configuration = configuration;
 		}
-
-
 
 		[HttpPost("login")]
 		public async Task<IActionResult> Login(AccountDto accountDto)
@@ -53,7 +50,6 @@ namespace WebAPI.Controllers
 				email = accountDto.Email,
 				password = accountDto.Password,
 				returnSecureToken = true
-
 			};
 
 			// HTTP isteği oluştur
@@ -68,9 +64,6 @@ namespace WebAPI.Controllers
 					FirebaseToken decoded = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(firebaseResponse.idToken);
 					var userIdFromToken = decoded.Uid;
 					var user = _authService.GetUserByFirebaseUid(userIdFromToken);
-					
-
-
 
 					if (user != null)
 					{
@@ -113,17 +106,12 @@ namespace WebAPI.Controllers
 							Claims = claims
 						});
 					}
-
 				}
-				
-				var errorContent = await response.Content.ReadAsStringAsync();			
+
+				var errorContent = await response.Content.ReadAsStringAsync();
 				throw new Exception();
-
 			}
-
 		}
-
-
 
 		[HttpPost("register-patient")]
 		[Authorize(Roles = "Admin,Patient")]
@@ -154,10 +142,7 @@ namespace WebAPI.Controllers
 						var token = tokenHandler.ReadJwtToken(firebaseResponse.IdToken);
 						var userId = token.Subject;
 
-
-
 						_patientService.CreatePatient(patients, userId);
-
 
 						var responseModel = new FirebaseRegisterResponse
 						{
@@ -180,8 +165,5 @@ namespace WebAPI.Controllers
 				}
 			}
 		}
-
 	}
-} 
-
-
+}

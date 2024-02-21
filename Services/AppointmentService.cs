@@ -15,12 +15,11 @@ namespace Services
 		private readonly DoctorService _doctorService;
 		private readonly IMapper _mapper;
 
-		public AppointmentService(HospitalAppointmentContext Context, IMapper mapper,DoctorService doctorService)
+		public AppointmentService(HospitalAppointmentContext Context, IMapper mapper, DoctorService doctorService)
 		{
 			_context = Context;
 			_doctorService = doctorService;
 			_mapper = mapper;
-
 		}
 
 		public void CreateAppointment(AppointmentDto appointmentDto)
@@ -76,7 +75,7 @@ namespace Services
 			var appointment = _context.Appointments
 							.Include(a => a.Status)
 							.FirstOrDefault(a => a.Id == id &&
-												 (a.StatusId == 14 || a.StatusId == 16));
+												 (a.StatusId == 14 || a.StatusId == 16 || a.StatusId == 15));
 
 			if (appointment.StatusId == 14)
 			{
@@ -86,6 +85,11 @@ namespace Services
 			if (appointment.Date < DateTime.Today)
 			{
 				throw new BadRequestException("You cannot cancel a past appointment.");
+			}
+
+			if(appointment.StatusId == 17)
+			{
+				throw new BadRequestException("The patient did not come to the appointment. Canceled by doctor");
 			}
 
 			appointment.StatusId = 16;
@@ -111,7 +115,7 @@ namespace Services
 				{
 					var hasAppointment = _context.Appointments.Any(a =>
 					a.DocId == doctorId &&
-					a.Date == new DateTime(date.Year, date.Month, date.Day) &&
+					a.Date == new DateTime(date.Year, date.Month, date.Day) && a.StatusId != 16 &&
 					a.AppointmentTimes.Any(at =>
 					(
 						at.StartTime <= startTime.ToTimeSpan() && at.EndTime >= startTime.ToTimeSpan() ||
@@ -210,7 +214,6 @@ namespace Services
 			return doctorAppointmentsAndSchedules;
 		}
 
-
 		private bool HasDoctorAppointments(int doctorId, DateOnly? startDate, DateOnly? endDate)
 		{
 			DateTime today = DateTime.Today;
@@ -224,7 +227,7 @@ namespace Services
 
 			var appointments = _context.Appointments
 				.Where(a => a.DocId == doctorId &&
-							a.Date >= new DateTime(startDate.Value.Year,startDate.Value.Month,startDate.Value.Day) && 
+							a.Date >= new DateTime(startDate.Value.Year, startDate.Value.Month, startDate.Value.Day) &&
 							a.Date <= new DateTime(endDate.Value.Year, endDate.Value.Month, endDate.Value.Day))
 				.ToList();
 
@@ -243,6 +246,5 @@ namespace Services
 				startTime = startTime.Add(TimeSpan.FromMinutes(30));
 			}
 		}
-
 	}
 }
