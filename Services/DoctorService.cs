@@ -359,7 +359,7 @@ namespace Services
 			context.SaveChanges();
 		}
 
-		public List<DateInfoDto> GetDoctorRoutinesAndOneTimes(int doctorId, DateOnly? startDate, DateOnly? endDate)
+		public virtual List<DateInfoDto> GetDoctorRoutinesAndOneTimes(int doctorId, DateOnly? startDate, DateOnly? endDate)
 		{
 			var doctor = context.Doctors
 		.Include(d => d.Routines)

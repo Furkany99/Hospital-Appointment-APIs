@@ -214,7 +214,7 @@ namespace Services
 			return doctorAppointmentsAndSchedules;
 		}
 
-		private bool HasDoctorAppointments(int doctorId, DateOnly? startDate, DateOnly? endDate)
+		public bool HasDoctorAppointments(int doctorId, DateOnly? startDate, DateOnly? endDate)
 		{
 			DateTime today = DateTime.Today;
 			DateTime endDay = today.AddDays(5);

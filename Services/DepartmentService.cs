@@ -19,14 +19,10 @@ namespace Services
 			_mapper = mapper;
 		}
 
-		public void CreateDepartments(DepartmentDto deprtmanetDto) 
+		public void CreateDepartments(DepartmentDto departmentDto) 
 		{
-			if (_mapper == null)
-			{
-				throw new InvalidOperationException("_mapper is not initialized.");
-			}
 
-			Department department = _mapper.Map<Department>(deprtmanetDto);
+			Department department = _mapper.Map<Department>(departmentDto);
 
 			_context.Departments.Add(department);
 			_context.SaveChanges();
